@@ -1,0 +1,126 @@
+# ------------------------------
+# macOS / Finder clutter
+# ------------------------------
+.DS_Store
+.DS_Store?
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100/
+.Trashes/
+Icon?
+
+# ------------------------------
+# VS Code / editor state
+# ------------------------------
+.vscode/
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/launch.json
+!.vscode/tasks.json
+!.vscode/*.code-snippets
+.history/
+
+# ------------------------------
+# PlatformIO build artifacts
+# ------------------------------
+.pio/
+.pioenvs/
+.piolibdeps/
+.pioinit
+.pio/build/
+.pio/libdeps/
+.pio/.cache/
+
+# PlatformIO / embedded tooling logs and caches
+*.pio.log
+*.elf
+*.bin
+*.hex
+*.map
+*.o
+*.a
+*.lst
+*.sym
+*.srec
+
+# ------------------------------
+# Python virtual environments & cache
+# ------------------------------
+.venv/
+venv/
+ENV/
+env/
+.python-version
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+.build/
+dist/
+build/
+site/
+.coverage
+.coverage.*
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.nox/
+.hypothesis/
+.ipynb_checkpoints/
+
+# ------------------------------
+# IDE / OS temporary files
+# ------------------------------
+*.swp
+*.swo
+*~
+*.tmp
+*.temp
+*.log
+*.bak
+*.orig
+*.rej
+
+# ------------------------------
+# FreeCAD / CAD generated backups and temp files
+# ------------------------------
+*.FCBak
+*.FCStd1
+*.FCStd2
+*.fcstd1
+*.fcstd2
+*.FCStdTmp
+*.Part
+*.part
+*.stp.tmp
+*.step.tmp
+*.FCStd.bak
+
+# ------------------------------
+# General archives / packaged artifacts
+# ------------------------------
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.rar
+*.7z
+*.gz
+
+# ------------------------------
+# Local environment files
+# ------------------------------
+.env
+.env.*
+!.env.example
+
+# ------------------------------
+# Generated documentation / reports
+# ------------------------------
+coverage/
+htmlcov/
+reports/

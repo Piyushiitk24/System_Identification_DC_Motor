@@ -1,0 +1,244 @@
+
+import math
+import FreeCAD as App
+import Part
+from FreeCAD import Vector
+
+DOC_NAME = "MotorMount_V2_OffsetShaft"
+
+# ============================================================
+# Johnson geared DC motor mount
+# Same philosophy as encoder mount:
+# - plywood base
+# - front face plate
+# - shaft/boss clearance hole
+# - 6 x M3 face-mount holes
+# - underside support saddles for motor body
+#
+# X = front-to-back
+# Y = left-right
+# Z = up from plywood
+# ============================================================
+
+# -----------------------------
+# Main design parameters (mm)
+# -----------------------------
+BASE_LENGTH = 96.0
+BASE_WIDTH = 64.0
+BASE_THICKNESS = 8.0
+
+STRUCTURE_OFFSET_X = 14.0
+
+FRONT_PLATE_THICKNESS = 6.0
+FRONT_PLATE_WIDTH = 60.0
+FRONT_PLATE_HEIGHT = 70.0
+
+SHAFT_CENTER_HEIGHT = 42.0   # Keep same as encoder mount for alignment
+
+# Motor front interface
+MOTOR_FRONT_BOSS_DIAMETER = 12.0
+MOTOR_FRONT_BOSS_CLEARANCE = 0.8
+SHAFT_BOSS_HOLE_DIAMETER = MOTOR_FRONT_BOSS_DIAMETER + MOTOR_FRONT_BOSS_CLEARANCE
+
+MOTOR_MOUNT_PCD = 31.0
+MOTOR_PATTERN_OFFSET_FROM_SHAFT = 7.0  # flange / hole-pattern center is 7 mm below shaft axis
+M3_CLEARANCE_DIAMETER = 3.4
+
+# 6 mounting holes on PCD31.
+# If your real motor needs a small angular tweak, only edit this list.
+MOUNT_HOLE_ANGLES_DEG = [0.0, 60.0, 120.0, 180.0, 240.0, 300.0]
+
+# Motor body behind the face
+GEARBOX_DIAMETER = 37.0
+GEARBOX_LENGTH = 22.5
+
+MOTOR_CAN_DIAMETER = 29.0
+MOTOR_CAN_LENGTH = 37.8
+
+BODY_CLEARANCE = 0.6
+CRADLE_SIDE_WALL = 5.0
+
+# Front support under gearbox section
+FRONT_SUPPORT_START_FROM_PLATE_REAR = 1.0
+FRONT_SUPPORT_LENGTH = 16.0
+FRONT_SUPPORT_TOP_Z = 49.0
+
+# Rear support under motor can section
+REAR_SUPPORT_START_FROM_PLATE_REAR = GEARBOX_LENGTH + 1.0
+REAR_SUPPORT_LENGTH = 30.0
+REAR_SUPPORT_TOP_Z = 45.0
+
+# Plywood mounting
+BASE_HOLE_DIAMETER = 5.0
+BASE_HOLE_X_EDGE = 10.0
+BASE_HOLE_Y_EDGE = 10.0
+
+# Stiffeners
+GUSSET_LENGTH = 26.0
+GUSSET_THICKNESS = 8.0
+GUSSET_TOP_Z = 56.0
+
+FILLET_RADIUS = 1.5
+
+
+def hole_x(diameter, x0, length, y, z):
+    return Part.makeCylinder(diameter / 2.0, length, Vector(x0, y, z), Vector(1, 0, 0))
+
+
+def hole_z(diameter, x, y, z0, length):
+    return Part.makeCylinder(diameter / 2.0, length, Vector(x, y, z0), Vector(0, 0, 1))
+
+
+def make_gusset(x0, y0):
+    pts = [
+        Vector(x0 + FRONT_PLATE_THICKNESS, 0, BASE_THICKNESS),
+        Vector(x0 + FRONT_PLATE_THICKNESS + GUSSET_LENGTH, 0, BASE_THICKNESS),
+        Vector(x0 + FRONT_PLATE_THICKNESS, 0, GUSSET_TOP_Z),
+        Vector(x0 + FRONT_PLATE_THICKNESS, 0, BASE_THICKNESS),
+    ]
+    wire = Part.makePolygon(pts)
+    face = Part.Face(wire)
+    gus = face.extrude(Vector(0, GUSSET_THICKNESS, 0))
+    gus.translate(Vector(0, y0, 0))
+    return gus
+
+
+def saddle_block(x_start, length, body_diameter, top_z):
+    width = body_diameter + 2.0 * CRADLE_SIDE_WALL
+    return Part.makeBox(
+        length,
+        width,
+        top_z - BASE_THICKNESS,
+        Vector(x_start, -width / 2.0, BASE_THICKNESS)
+    )
+
+
+def saddle_cut(x_start, length, body_diameter):
+    return Part.makeCylinder(
+        (body_diameter + BODY_CLEARANCE) / 2.0,
+        length + 0.4,
+        Vector(x_start - 0.2, 0.0, SHAFT_CENTER_HEIGHT),
+        Vector(1, 0, 0)
+    )
+
+
+def build_mount():
+    # Base
+    base = Part.makeBox(
+        BASE_LENGTH,
+        BASE_WIDTH,
+        BASE_THICKNESS,
+        Vector(0, -BASE_WIDTH / 2.0, 0)
+    )
+
+    # Front face plate
+    front_plate = Part.makeBox(
+        FRONT_PLATE_THICKNESS,
+        FRONT_PLATE_WIDTH,
+        FRONT_PLATE_HEIGHT,
+        Vector(STRUCTURE_OFFSET_X, -FRONT_PLATE_WIDTH / 2.0, BASE_THICKNESS)
+    )
+
+    # Side gussets
+    gus_left = make_gusset(STRUCTURE_OFFSET_X, -FRONT_PLATE_WIDTH / 2.0)
+    gus_right = make_gusset(STRUCTURE_OFFSET_X, FRONT_PLATE_WIDTH / 2.0 - GUSSET_THICKNESS)
+
+    plate_rear_x = STRUCTURE_OFFSET_X + FRONT_PLATE_THICKNESS
+
+    # Front support for dia37 gearbox section
+    front_support_x = plate_rear_x + FRONT_SUPPORT_START_FROM_PLATE_REAR
+    front_support = saddle_block(
+        front_support_x,
+        FRONT_SUPPORT_LENGTH,
+        GEARBOX_DIAMETER,
+        FRONT_SUPPORT_TOP_Z
+    )
+
+    # Rear support for dia29 motor can
+    rear_support_x = plate_rear_x + REAR_SUPPORT_START_FROM_PLATE_REAR
+    rear_support = saddle_block(
+        rear_support_x,
+        REAR_SUPPORT_LENGTH,
+        MOTOR_CAN_DIAMETER,
+        REAR_SUPPORT_TOP_Z
+    )
+
+    # Union
+    shape = (
+        base
+        .fuse(front_plate)
+        .fuse(gus_left)
+        .fuse(gus_right)
+        .fuse(front_support)
+        .fuse(rear_support)
+    )
+
+    # 1) Central boss / shaft clearance hole
+    shape = shape.cut(
+        hole_x(
+            SHAFT_BOSS_HOLE_DIAMETER,
+            STRUCTURE_OFFSET_X - 0.5,
+            FRONT_PLATE_THICKNESS + 1.0,
+            0.0,
+            SHAFT_CENTER_HEIGHT
+        )
+    )
+
+    # 2) 6 x M3 face-mount holes on PCD31.
+    # IMPORTANT: the motor shaft is NOT at the center of the mounting pattern.
+    # From the drawing, the mounting-pattern center is 7 mm below the shaft axis.
+    pattern_center_z = SHAFT_CENTER_HEIGHT - MOTOR_PATTERN_OFFSET_FROM_SHAFT
+    for ang_deg in MOUNT_HOLE_ANGLES_DEG:
+        a = math.radians(ang_deg)
+        y = (MOTOR_MOUNT_PCD / 2.0) * math.cos(a)
+        z = pattern_center_z + (MOTOR_MOUNT_PCD / 2.0) * math.sin(a)
+        shape = shape.cut(
+            hole_x(
+                M3_CLEARANCE_DIAMETER,
+                STRUCTURE_OFFSET_X - 0.5,
+                FRONT_PLATE_THICKNESS + 1.0,
+                y,
+                z
+            )
+        )
+
+    # 3) Support saddle cuts
+    shape = shape.cut(saddle_cut(front_support_x, FRONT_SUPPORT_LENGTH, GEARBOX_DIAMETER))
+    shape = shape.cut(saddle_cut(rear_support_x, REAR_SUPPORT_LENGTH, MOTOR_CAN_DIAMETER))
+
+    # 4) Four base holes for screwing to plywood
+    x_positions = [BASE_HOLE_X_EDGE, BASE_LENGTH - BASE_HOLE_X_EDGE]
+    y_positions = [
+        -BASE_WIDTH / 2.0 + BASE_HOLE_Y_EDGE,
+        BASE_WIDTH / 2.0 - BASE_HOLE_Y_EDGE
+    ]
+    for x in x_positions:
+        for y in y_positions:
+            shape = shape.cut(hole_z(BASE_HOLE_DIAMETER, x, y, -0.5, BASE_THICKNESS + 1.0))
+
+    # Soft fillets
+    try:
+        shape = shape.makeFillet(FILLET_RADIUS, shape.Edges)
+    except Exception:
+        pass
+
+    return shape
+
+
+if DOC_NAME in App.listDocuments().keys():
+    doc = App.getDocument(DOC_NAME)
+    for obj in list(doc.Objects):
+        doc.removeObject(obj.Name)
+else:
+    doc = App.newDocument(DOC_NAME)
+
+obj = doc.addObject("Part::Feature", "MotorMount")
+obj.Shape = build_mount()
+
+doc.recompute()
+try:
+    import FreeCADGui as Gui
+    Gui.activeDocument().activeView().viewAxonometric()
+    Gui.SendMsgToActiveView("ViewFit")
+except Exception:
+    pass

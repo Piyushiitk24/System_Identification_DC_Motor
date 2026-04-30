@@ -1,0 +1,200 @@
+
+import math
+import FreeCAD as App
+import Part
+from FreeCAD import Vector
+
+DOC_NAME = "EncoderMount_V3"
+
+# ============================================================
+# Encoder mount for lying-down optical encoder
+# Revised so all 4 plywood mounting holes remain fully clear
+# of the upright structure.
+#
+# X = front-to-back
+# Y = left-right
+# Z = up from plywood
+# ============================================================
+
+# -----------------------------
+# Main design parameters (mm)
+# -----------------------------
+BASE_LENGTH = 88.0
+BASE_WIDTH = 64.0
+BASE_THICKNESS = 8.0
+
+# Move the whole upright structure back from the front edge
+# so front plywood screw holes stay completely free.
+STRUCTURE_OFFSET_X = 14.0
+
+FRONT_PLATE_THICKNESS = 6.0
+FRONT_PLATE_WIDTH = 60.0
+FRONT_PLATE_HEIGHT = 70.0
+
+SHAFT_CENTER_HEIGHT = 42.0   # Must match motor shaft center height later
+
+# Encoder interface
+ENCODER_BODY_DIAMETER = 38.0
+ENCODER_FRONT_BOSS_DIAMETER = 20.0
+FRONT_BOSS_CLEARANCE = 0.8
+SHAFT_BOSS_HOLE_DIAMETER = ENCODER_FRONT_BOSS_DIAMETER + FRONT_BOSS_CLEARANCE
+
+ENCODER_PCD = 30.0
+M3_CLEARANCE_DIAMETER = 3.4
+
+# Cable-up orientation
+MOUNT_HOLE_ANGLES_DEG = [0.0, 30.0, 120.0, 150.0, 240.0, 270.0]
+
+# Axial encoder geometry
+FLANGE_TO_BODY_START = 5.0
+BODY_LENGTH = 35.0
+
+# Cradle
+BODY_CRADLE_CLEARANCE = 0.6
+CRADLE_START_FROM_PLATE_REAR = FLANGE_TO_BODY_START + 1.0
+CRADLE_SUPPORT_LENGTH = 28.0
+CRADLE_SIDE_WALL = 5.0
+CRADLE_TOP_Z = 48.0
+
+# Plywood mounting
+BASE_HOLE_DIAMETER = 5.0
+BASE_HOLE_X_EDGE = 10.0
+BASE_HOLE_Y_EDGE = 10.0
+
+# Stiffeners
+GUSSET_LENGTH = 26.0
+GUSSET_THICKNESS = 8.0
+GUSSET_TOP_Z = 56.0
+
+FILLET_RADIUS = 1.5
+
+
+def hole_x(diameter, x0, length, y, z):
+    return Part.makeCylinder(diameter / 2.0, length, Vector(x0, y, z), Vector(1, 0, 0))
+
+
+def hole_z(diameter, x, y, z0, length):
+    return Part.makeCylinder(diameter / 2.0, length, Vector(x, y, z0), Vector(0, 0, 1))
+
+
+def make_gusset(x0, y0):
+    pts = [
+        Vector(x0 + FRONT_PLATE_THICKNESS, 0, BASE_THICKNESS),
+        Vector(x0 + FRONT_PLATE_THICKNESS + GUSSET_LENGTH, 0, BASE_THICKNESS),
+        Vector(x0 + FRONT_PLATE_THICKNESS, 0, GUSSET_TOP_Z),
+        Vector(x0 + FRONT_PLATE_THICKNESS, 0, BASE_THICKNESS),
+    ]
+    wire = Part.makePolygon(pts)
+    face = Part.Face(wire)
+    gus = face.extrude(Vector(0, GUSSET_THICKNESS, 0))
+    gus.translate(Vector(0, y0, 0))
+    return gus
+
+
+def build_mount():
+    # Base
+    base = Part.makeBox(
+        BASE_LENGTH,
+        BASE_WIDTH,
+        BASE_THICKNESS,
+        Vector(0, -BASE_WIDTH / 2.0, 0)
+    )
+
+    # Vertical front plate
+    front_plate = Part.makeBox(
+        FRONT_PLATE_THICKNESS,
+        FRONT_PLATE_WIDTH,
+        FRONT_PLATE_HEIGHT,
+        Vector(STRUCTURE_OFFSET_X, -FRONT_PLATE_WIDTH / 2.0, BASE_THICKNESS)
+    )
+
+    # Side gussets
+    gus_left = make_gusset(STRUCTURE_OFFSET_X, -FRONT_PLATE_WIDTH / 2.0)
+    gus_right = make_gusset(STRUCTURE_OFFSET_X, FRONT_PLATE_WIDTH / 2.0 - GUSSET_THICKNESS)
+
+    # Rear body-support cradle block
+    cradle_width = ENCODER_BODY_DIAMETER + 2.0 * CRADLE_SIDE_WALL
+    cradle_start_x = STRUCTURE_OFFSET_X + FRONT_PLATE_THICKNESS + CRADLE_START_FROM_PLATE_REAR
+
+    cradle_block = Part.makeBox(
+        CRADLE_SUPPORT_LENGTH,
+        cradle_width,
+        CRADLE_TOP_Z - BASE_THICKNESS,
+        Vector(cradle_start_x, -cradle_width / 2.0, BASE_THICKNESS)
+    )
+
+    # Union
+    shape = base.fuse(front_plate).fuse(gus_left).fuse(gus_right).fuse(cradle_block)
+
+    # 1) Central boss / shaft clearance hole
+    shape = shape.cut(
+        hole_x(
+            SHAFT_BOSS_HOLE_DIAMETER,
+            STRUCTURE_OFFSET_X - 0.5,
+            FRONT_PLATE_THICKNESS + 1.0,
+            0.0,
+            SHAFT_CENTER_HEIGHT
+        )
+    )
+
+    # 2) Encoder 6-hole mounting pattern
+    for ang_deg in MOUNT_HOLE_ANGLES_DEG:
+        a = math.radians(ang_deg)
+        y = (ENCODER_PCD / 2.0) * math.cos(a)
+        z = SHAFT_CENTER_HEIGHT + (ENCODER_PCD / 2.0) * math.sin(a)
+        shape = shape.cut(
+            hole_x(
+                M3_CLEARANCE_DIAMETER,
+                STRUCTURE_OFFSET_X - 0.5,
+                FRONT_PLATE_THICKNESS + 1.0,
+                y,
+                z
+            )
+        )
+
+    # 3) Cradle saddle cut
+    cradle_cut_d = ENCODER_BODY_DIAMETER + BODY_CRADLE_CLEARANCE
+    cradle_cut = Part.makeCylinder(
+        cradle_cut_d / 2.0,
+        CRADLE_SUPPORT_LENGTH + 0.4,
+        Vector(cradle_start_x - 0.2, 0.0, SHAFT_CENTER_HEIGHT),
+        Vector(1, 0, 0)
+    )
+    shape = shape.cut(cradle_cut)
+
+    # 4) Four base holes for screwing to plywood
+    x_positions = [BASE_HOLE_X_EDGE, BASE_LENGTH - BASE_HOLE_X_EDGE]
+    y_positions = [
+        -BASE_WIDTH / 2.0 + BASE_HOLE_Y_EDGE,
+        BASE_WIDTH / 2.0 - BASE_HOLE_Y_EDGE
+    ]
+    for x in x_positions:
+        for y in y_positions:
+            shape = shape.cut(hole_z(BASE_HOLE_DIAMETER, x, y, -0.5, BASE_THICKNESS + 1.0))
+
+    # Soft fillets
+    try:
+        shape = shape.makeFillet(FILLET_RADIUS, shape.Edges)
+    except Exception:
+        pass
+
+    return shape
+
+
+if DOC_NAME in App.listDocuments().keys():
+    doc = App.getDocument(DOC_NAME)
+    for obj in list(doc.Objects):
+        doc.removeObject(obj.Name)
+else:
+    doc = App.newDocument(DOC_NAME)
+
+obj = doc.addObject("Part::Feature", "EncoderMount")
+obj.Shape = build_mount()
+
+doc.recompute()
+try:
+    import FreeCADGui as Gui
+    Gui.activeDocument().activeView().viewAxonometric()
+    Gui.SendMsgToActiveView("ViewFit")
+except Exception:
+    pass

@@ -1,0 +1,228 @@
+import FreeCADGui as Gui
+import FreeCAD as App
+import Part
+from FreeCAD import Vector
+
+DOC_NAME = "MotorEncoderCoupling_V2_Lengthened"
+
+# ============================================================
+# Printed cubic coupling between:
+# 1) Motor shaft: nominal 6 mm round shaft with transverse M3 hole
+# 2) Encoder shaft: nominal 6 mm D-shaft (5.5 across flat)
+#
+# Coordinate system:
+# X = shaft axis, motor side at X=0, encoder side at X=COUPLING_LENGTH
+# Y = left-right
+# Z = up-down
+# ============================================================
+
+# -----------------------------
+# Main body
+# -----------------------------
+COUPLING_LENGTH = 34.0
+COUPLING_WIDTH = 20.0
+COUPLING_HEIGHT = 20.0
+
+# -----------------------------
+# Motor side interface
+# -----------------------------
+MOTOR_SHAFT_DIAMETER = 6.0
+MOTOR_BORE_CLEARANCE = 0.25      # printed clearance
+MOTOR_BORE_DIAMETER = MOTOR_SHAFT_DIAMETER + MOTOR_BORE_CLEARANCE
+MOTOR_INSERT_DEPTH = 16.0
+
+# Motor shaft cross-hole center is taken 8 mm from shaft tip,
+# so with 16 mm insertion it aligns 8 mm from motor face.
+# With the increased coupling length below, nominal shaft-to-shaft gap becomes
+# 34 - 16 - 12 = 6 mm, reducing the risk of the two shafts touching.
+MOTOR_LOCK_HOLE_X = 8.0          # from motor-side coupling face
+MOTOR_LOCK_HOLE_DIAMETER = 3.4   # M3 clearance; screw threads into motor shaft
+MOTOR_LOCK_COUNTERBORE_DIAMETER = 6.3
+MOTOR_LOCK_COUNTERBORE_DEPTH = 4.0
+
+# -----------------------------
+# Encoder side interface
+# -----------------------------
+ENCODER_SHAFT_DIAMETER = 6.0
+ENCODER_D_FLAT_ACROSS = 5.5      # nominal shaft size across flat from drawing
+ENCODER_BORE_CLEARANCE = 0.20
+ENCODER_BORE_DIAMETER = ENCODER_SHAFT_DIAMETER + ENCODER_BORE_CLEARANCE
+ENCODER_D_FLAT_ACROSS_CLEAR = ENCODER_D_FLAT_ACROSS + ENCODER_BORE_CLEARANCE
+ENCODER_INSERT_DEPTH = 12.0
+
+# Set-screw from top pressing onto the flat
+ENCODER_SETSCREW_X = COUPLING_LENGTH - 6.0   # 6 mm in from encoder-side face
+ENCODER_SETSCREW_PILOT_DIAMETER = 2.8        # M3 self-tap / tap drill in printed part
+ENCODER_SETSCREW_COUNTERBORE_DIAMETER = 6.3
+ENCODER_SETSCREW_COUNTERBORE_DEPTH = 4.0
+
+# -----------------------------
+# General
+# -----------------------------
+ENTRY_CHAMFER = 0.8
+FILLET_RADIUS = 0.8
+
+
+# ============================================================
+# Helpers
+# ============================================================
+
+def cyl_x(diameter, x0, length):
+    return Part.makeCylinder(diameter / 2.0, length, Vector(x0, 0, 0), Vector(1, 0, 0))
+
+
+def cyl_z(diameter, x, y, z0, length):
+    return Part.makeCylinder(diameter / 2.0, length, Vector(x, y, z0), Vector(0, 0, -1))
+
+
+def make_chamfer_ring(face_x, bore_d_major, bore_d_minor, depth, at_motor_side=True):
+    """Simple entry chamfer as truncated cone cut."""
+    r1 = bore_d_major / 2.0
+    r2 = bore_d_minor / 2.0
+    if at_motor_side:
+        cone = Part.makeCone(r1, r2, depth, Vector(face_x, 0, 0), Vector(1, 0, 0))
+    else:
+        # From encoder face inward toward negative X
+        cone = Part.makeCone(r1, r2, depth, Vector(face_x, 0, 0), Vector(-1, 0, 0))
+    return cone
+
+
+def build_coupling():
+    if MOTOR_INSERT_DEPTH + ENCODER_INSERT_DEPTH >= COUPLING_LENGTH:
+        raise ValueError("Insertion depths are too large; central wall would vanish or invert.")
+
+    body = Part.makeBox(
+        COUPLING_LENGTH,
+        COUPLING_WIDTH,
+        COUPLING_HEIGHT,
+        Vector(0, -COUPLING_WIDTH / 2.0, -COUPLING_HEIGHT / 2.0)
+    )
+
+    # -----------------------------
+    # Motor round bore
+    # -----------------------------
+    motor_bore = cyl_x(MOTOR_BORE_DIAMETER, 0.0, MOTOR_INSERT_DEPTH)
+
+    # Motor entry chamfer
+    motor_chamfer = make_chamfer_ring(
+        0.0,
+        MOTOR_BORE_DIAMETER + 2.0 * ENTRY_CHAMFER,
+        MOTOR_BORE_DIAMETER,
+        ENTRY_CHAMFER,
+        at_motor_side=True,
+    )
+
+    # Motor locking screw from top to motor shaft threaded hole
+    motor_lock = cyl_z(
+        MOTOR_LOCK_HOLE_DIAMETER,
+        MOTOR_LOCK_HOLE_X,
+        0.0,
+        COUPLING_HEIGHT / 2.0 + 0.1,
+        COUPLING_HEIGHT + 0.2,
+    )
+    motor_lock_cb = cyl_z(
+        MOTOR_LOCK_COUNTERBORE_DIAMETER,
+        MOTOR_LOCK_HOLE_X,
+        0.0,
+        COUPLING_HEIGHT / 2.0 + 0.1,
+        MOTOR_LOCK_COUNTERBORE_DEPTH,
+    )
+
+    # -----------------------------
+    # Encoder D-bore
+    # -----------------------------
+    encoder_round_bore = cyl_x(
+        ENCODER_BORE_DIAMETER,
+        COUPLING_LENGTH - ENCODER_INSERT_DEPTH,
+        ENCODER_INSERT_DEPTH,
+    )
+
+    # Flat on TOP side so top screw presses onto flat
+    r_enc = ENCODER_BORE_DIAMETER / 2.0
+    z_flat = -r_enc + ENCODER_D_FLAT_ACROSS_CLEAR
+    flat_cut = Part.makeBox(
+        ENCODER_INSERT_DEPTH + 1.0,
+        COUPLING_WIDTH + 2.0,
+        COUPLING_HEIGHT,
+        Vector(COUPLING_LENGTH - ENCODER_INSERT_DEPTH - 0.5, -COUPLING_WIDTH / 2.0 - 1.0, z_flat)
+    )
+    encoder_d_bore = encoder_round_bore.cut(flat_cut)
+
+    # Encoder entry chamfer
+    encoder_chamfer = make_chamfer_ring(
+        COUPLING_LENGTH,
+        ENCODER_BORE_DIAMETER + 2.0 * ENTRY_CHAMFER,
+        ENCODER_BORE_DIAMETER,
+        ENTRY_CHAMFER,
+        at_motor_side=False,
+    )
+
+    # Encoder set-screw from top
+    encoder_setscrew = cyl_z(
+        ENCODER_SETSCREW_PILOT_DIAMETER,
+        ENCODER_SETSCREW_X,
+        0.0,
+        COUPLING_HEIGHT / 2.0 + 0.1,
+        COUPLING_HEIGHT + 0.2,
+    )
+    encoder_setscrew_cb = cyl_z(
+        ENCODER_SETSCREW_COUNTERBORE_DIAMETER,
+        ENCODER_SETSCREW_X,
+        0.0,
+        COUPLING_HEIGHT / 2.0 + 0.1,
+        ENCODER_SETSCREW_COUNTERBORE_DEPTH,
+    )
+
+    # Apply all cuts
+    result = body.cut(motor_bore)
+    result = result.cut(motor_chamfer)
+    result = result.cut(motor_lock)
+    result = result.cut(motor_lock_cb)
+
+    result = result.cut(encoder_d_bore)
+    result = result.cut(encoder_chamfer)
+    result = result.cut(encoder_setscrew)
+    result = result.cut(encoder_setscrew_cb)
+
+    # Try small edge fillet on outside only
+    try:
+        edges = []
+        for e in result.Edges:
+            pts = e.Vertexes
+            if len(pts) == 2:
+                x1, y1, z1 = pts[0].Point.x, pts[0].Point.y, pts[0].Point.z
+                x2, y2, z2 = pts[1].Point.x, pts[1].Point.y, pts[1].Point.z
+                # collect only obvious external box edges
+                if (
+                    abs(abs(y1) - COUPLING_WIDTH / 2.0) < 1e-6 and abs(abs(y2) - COUPLING_WIDTH / 2.0) < 1e-6
+                ) or (
+                    abs(abs(z1) - COUPLING_HEIGHT / 2.0) < 1e-6 and abs(abs(z2) - COUPLING_HEIGHT / 2.0) < 1e-6
+                ):
+                    edges.append(e)
+        if edges:
+            result = result.makeFillet(FILLET_RADIUS, edges)
+    except Exception:
+        pass
+
+    return result
+
+
+# ============================================================
+# Build document
+# ============================================================
+if App.ActiveDocument and App.ActiveDocument.Name == DOC_NAME:
+    doc = App.ActiveDocument
+    for obj in list(doc.Objects):
+        doc.removeObject(obj.Name)
+else:
+    doc = App.newDocument(DOC_NAME)
+
+shape = build_coupling()
+obj = doc.addObject("Part::Feature", "MotorEncoderCoupling")
+obj.Shape = shape
+obj.Label = "MotorEncoderCoupling"
+
+doc.recompute()
+App.ActiveDocument = doc
+Gui.ActiveDocument.ActiveView.viewAxometric()
+Gui.SendMsgToActiveView("ViewFit")
