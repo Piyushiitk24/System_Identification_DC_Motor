@@ -1,6 +1,6 @@
 # DC Motor System Identification — Updated Master's Thesis Plan
 
-**Setup:** 12V, 300 RPM, 60:1 geared DC motor + L298N driver + 600 PPR quadrature encoder (output shaft) + Arduino Uno + bench PSU  
+**Setup:** 12V, 300 RPM, 60:1 geared DC motor + L298N driver + 600 PPR quadrature encoder (output shaft) + Arduino Uno R4 Minima + bench PSU  
 **Goal:** Identify a compact model that captures:
 - driver voltage loss / droop,
 - deadzone and breakaway asymmetry,
@@ -17,41 +17,20 @@ and then show that this model improves closed-loop performance over a naive glob
 ## Repository Layout
 
 ```text
-motor_id/
-├── PLAN.md
+System_Identification_DC_Motor/
+├── plan.md
+├── manual.md
 ├── README.md
-├── firmware/
-│   └── motor_id_fw/
-│       ├── platformio.ini
-│       └── src/main.cpp
-├── trajectories/
-│   ├── staircase_main.csv
-│   ├── staircase_reversal.csv
-│   ├── static_sweep_fwd.csv
-│   ├── static_sweep_rev.csv
-│   ├── slow_ramp_fwd.csv
-│   ├── slow_ramp_rev.csv
-│   ├── prbs_rpm50.csv
-│   ├── prbs_rpm100.csv
-│   ├── prbs_rpm150.csv
-│   ├── prbs_rpm200.csv
-│   ├── val_chirp_pos.csv
-│   ├── val_chirp_neg.csv
-│   ├── val_crosszero_random.csv
-│   └── val_unseen_staircase.csv
+├── PIN_CONFIGURATION.md
+├── platformio.ini
+├── src/main.cpp
 ├── data/
 │   ├── raw/
 │   ├── processed/
-│   └── metadata/
+│   ├── metadata/
+│   └── templates/
 ├── notebooks/
-│   ├── 00_rig_acceptance.ipynb
-│   ├── 01_static_map.ipynb
-│   ├── 02_deadzone.ipynb
-│   ├── 03_staircase_analysis.ipynb
-│   ├── 04_prbs_local_lti.ipynb
-│   ├── 05_model_fitting.ipynb
-│   ├── 06_validation_scoring.ipynb
-│   └── 07_closed_loop.ipynb
+│   └── 01_static_map.ipynb
 ├── models/
 ├── figures/
 └── thesis_notes/
@@ -65,16 +44,16 @@ motor_id/
 
 | Item | Notes |
 |---|---|
-| Arduino Uno R3 | Sufficient for this experiment if logging is kept lean |
+| Arduino Uno R4 Minima | Current PlatformIO target |
 | L298N motor driver module | Standard board |
 | 12V, 300 RPM, 60:1 geared DC motor with 600 PPR quadrature encoder | Confirm exact encoder spec in datasheet |
 | Bench PSU, 0–30V / 0–5A | **Mandatory for ID runs** |
-| INA219 breakout | For **supply current** and supply voltage monitoring |
+| INA219 breakout | Optional future Phase 2 supply-current monitor |
 | Resistors: 10 kΩ × 6, 3.3 kΩ × 3, 4.7 kΩ × 2 | Dividers + encoder pull-ups |
 | Capacitors: 100 nF ceramic × 6, 470 µF electrolytic × 1 | Decoupling + ADC low-pass + motor suppression |
 | Breadboard / terminal blocks / wires | Keep power and signal wiring physically separated |
-| Multimeter | Calibration |
-| Oscilloscope | Phase 0 only |
+| DMM / multimeter | Mandatory for Phase 0-1 average motor-voltage readings |
+| Oscilloscope | Optional sanity check only; not required for Phase 0-1 raw data |
 
 ### Important note on current sensing
 The INA219 on the supply rail measures **supply current**, not true instantaneous armature current.  
@@ -87,7 +66,7 @@ but it is **not** a clean motor-current sensor for detailed grey-box electrical 
 
 ---
 
-## 0.2 Pin Assignments (Arduino Uno)
+## 0.2 Pin Assignments (Arduino Uno R4 Minima)
 
 | Arduino Pin | Function | Connected To |
 |---|---|---|
@@ -95,7 +74,7 @@ but it is **not** a clean motor-current sensor for detailed grey-box electrical 
 | D3 (INT1) | Encoder B | Encoder channel B, with 4.7 kΩ pull-up to 5V |
 | D4 | L298N IN1 | Direction |
 | D5 | L298N IN2 | Direction |
-| D9 (PWM) | L298N ENA | PWM output from Timer1 |
+| D9 (PWM) | L298N ENA | PWM output |
 | A0 | OUT1 average voltage | Via 10k / 3.3k divider + 100 nF low-pass cap |
 | A1 | OUT2 average voltage | Via 10k / 3.3k divider + 100 nF low-pass cap |
 | A2 | Supply voltage | Via 10k / 3.3k divider |
@@ -105,8 +84,8 @@ but it is **not** a clean motor-current sensor for detailed grey-box electrical 
 | GND | Common signal ground | Returned to a **single physical star point** |
 
 ### PWM frequency
-Use D9 (Timer1) and set PWM frequency high enough to avoid audible whine, but keep it fixed for the entire study.  
-Do **not** change PWM frequency mid-project.
+Use D9 and keep PWM frequency fixed for the entire study. Phase 0-1 firmware
+sets 20 kHz for stable DMM readings.
 
 ---
 
@@ -219,25 +198,23 @@ Do a one-time divider calibration with a DMM and store the scale factors in firm
 
 ### PlatformIO `platformio.ini`
 ```ini
-[env:uno]
-platform = atmelavr
-board = uno
+[env:uno_r4_minima]
+platform = renesas-ra
+board = uno_r4_minima
 framework = arduino
 monitor_speed = 230400
-lib_deps = adafruit/Adafruit INA219@^1.2.0
 ```
 
-### Scheduling philosophy
-- Use a **microsecond-based scheduler**
-- Internal task tick: `5 ms`
-- Log rate: `10 ms`
-- Timestamp everything with `t_us`
+### Phase 0-1 scheduling philosophy
+- Manual command entry from Serial Monitor
+- Firmware telemetry every `100 ms`
+- PWM on D9 at `20 kHz` for stable DMM average-voltage readings
+- No autonomous trajectory playback or host logger in Phase 0-1
 
 ### `src/main.cpp` responsibilities
 
 1. **Setup**
-   - Configure Timer1 PWM on D9
-   - Initialize INA219
+   - Configure PWM on D9 at `20 kHz`
    - Initialize Serial at `230400`
    - Attach encoder interrupts
 
@@ -245,41 +222,30 @@ lib_deps = adafruit/Adafruit INA219@^1.2.0
    - Use ISR-based count update
    - Keep ISR extremely small
 
-3. **Trajectory playback**
-   - Arduino plays the trajectory autonomously from a preloaded array
-   - Trajectory update every `5 ms`
+3. **Manual control**
+   - `f` sets forward direction
+   - `r` sets reverse direction
+   - `s` stops / coasts
+   - `z` zeros encoder count
+   - numeric `0..255` input sets PWM magnitude
 
-4. **Voltage/current acquisition**
-   - Read A0, A1, A2
-   - Read INA219
-   - These are low-pass / averaged signals
-
-5. **Telemetry output every 10 ms**
+4. **Telemetry output every 100 ms**
 ```text
-t_us,u_cmd,dir,v_supply,v_out1_avg,v_out2_avg,v_motor_avg,i_supply_mA,enc_count
+t_ms,pwm_cmd,dir,enc_count,rpm
 ```
 
-6. **Trigger**
-   - Wait for `'g'` from host
-   - Start trajectory
-   - Print header once
-   - Print `END` at completion
-
-### Important logging rule
-Do **not** command PWM from Python in real time.  
-Python only starts logging and stores data.  
-Arduino owns timing.
+Phase 2 may later add autonomous trajectory playback and host logging, but
+those are intentionally out of scope for the current Phase 0-1 scaffold.
 
 ---
 
 ## 0.8 Speed Estimation Strategy
 
 ### In firmware
-Do **not** rely on a single noisy 10 ms RPM estimate as the “truth”.
+Do **not** treat one RPM sample as the final modeling truth.
 
-Instead:
-- log cumulative `enc_count` every 10 ms
-- reconstruct speed offline from `enc_count` vs `t_us`
+For Phase 0-1, firmware prints cumulative `enc_count` and an operator-facing
+RPM estimate every 100 ms. Static sweep raw files copy the settled RPM reading.
 
 ### Offline speed estimation
 Use two offline speed signals:
@@ -292,7 +258,10 @@ This avoids trying to detect 1 RPM from one tiny count difference in firmware.
 
 ## 0.9 Host Logging Script
 
-Create one logger that saves:
+Not part of Phase 0-1. Static sweeps are hand-entered from DMM and serial
+readings.
+
+For Phase 2, create one logger that saves:
 - raw CSV
 - a sidecar metadata JSON or CSV row
 
@@ -314,7 +283,7 @@ Metadata fields:
 - [ ] A1. PWM = 0 → motor still, no unintended creep
 - [ ] A2. `v_motor_avg` at fixed PWM is stable and repeatable
 - [ ] A3. `v_motor_avg` agrees reasonably with DMM average reading at PWM = 50, 150, 250
-- [ ] A4. `i_supply` agrees reasonably with PSU display / DMM
+- [ ] A4. DMM reading is stable enough at PWM = 200 across five readings
 - [ ] A5. Supply rail stays stable under load
 
 ### Encoder / timing
@@ -322,7 +291,7 @@ Metadata fields:
 - [ ] A7. Direction sign flips correctly
 - [ ] A8. No missed counts at max speed
 - [ ] A9. Logging loop does not overrun
-- [ ] A10. PWM frequency verified on scope
+- [ ] A10. Firmware uses fixed 20 kHz PWM for DMM stability
 - [ ] A11. No dangerous spikes / wiring noise issue on motor terminals
 
 ### Thermal / repeatability
@@ -337,13 +306,20 @@ Do **not** proceed until Phase 0 is trustworthy.
 
 ## 1.1 Static Sweep (separate forward and reverse)
 
-### Trajectories
-- `static_sweep_fwd.csv`
-- `static_sweep_rev.csv`
+### Raw files
+- `static_sweep_fwd_runNN.csv`
+- `static_sweep_rev_runNN.csv`
 
-Use signed commands:
-- forward: `0, 10, 20, ..., 250, 255`
-- reverse: `0, -10, -20, ..., -250, -255`
+Use typed PWM magnitudes for both directions:
+- `pwm_cmd`: `0, 10, 20, ..., 250, 255`
+- `direction`: `fwd` or `rev`
+
+Raw CSV schema:
+```text
+pwm_cmd,direction,vmean_v,rpm,notes
+```
+
+Do not store scope-only fields such as `vmax` or `duty` in raw files.
 
 ### Hold per level
 Use **4 seconds per level**:
@@ -354,25 +330,18 @@ Repeat each full sweep **3 times**, but do not run all repeats back-to-back with
 
 ### Analysis (`01_static_map.ipynb`)
 For each step compute:
-- mean `u_cmd`
-- mean `v_motor_avg`
-- mean `v_supply`
-- mean `i_supply`
-- mean `rpm_ss`
+- mean `pwm_cmd`
+- mean measured `vmean_v`
+- mean `rpm`
 
 ### Plots
-1. `u_cmd` vs `rpm_ss`
-2. `u_cmd` vs `v_motor_avg`
-3. `v_motor_avg` vs `rpm_ss`
-4. `i_supply` vs `v_motor_avg`
-5. run index / warmness vs `rpm_ss` at selected fixed commands
+1. `pwm_cmd` vs `rpm`
+2. `pwm_cmd` vs `vmean_v`
+3. `vmean_v` vs `rpm`
+4. forward and reverse overlaid on shared axes
 
-### Fit and save
-Fit monotone maps:
-- `u_cmd → v_motor_avg`
-- `v_motor_avg → rpm_ss`
-
-Also save inverse maps where useful.
+### Phase 0-1 output
+Plot only. Do not fit models until the static sweeps are complete and reviewed.
 
 ### Important interpretation
 Do **not** call Plot 4 “output impedance”.  

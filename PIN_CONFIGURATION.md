@@ -2,7 +2,7 @@
 
 ## Hardware
 
-- Arduino Uno R3
+- Arduino Uno R4 Minima
 - L298N motor driver
 - 12 V geared DC motor
 - 2-phase 600 PPR quadrature encoder
@@ -10,17 +10,31 @@
 
 ---
 
-## Arduino Uno Pin Map
+## Arduino Uno R4 Minima Pin Map
 
 | Arduino Pin | Connected To | Purpose |
 |---|---|---|
-| `D2` | Encoder channel `A` | Quadrature interrupt input `INT0` |
-| `D3` | Encoder channel `B` | Quadrature interrupt input `INT1` |
+| `D2` | Encoder channel `A` | Quadrature interrupt input |
+| `D3` | Encoder channel `B` | Quadrature interrupt input |
 | `D4` | L298N `IN1` | Motor direction input 1 |
 | `D5` | L298N `IN2` | Motor direction input 2 |
 | `D9` | L298N `ENA` | PWM speed command |
 | `5V` | Encoder `VCC` and L298N logic `5V` | Logic supply |
 | `GND` | Encoder `GND`, L298N `GND`, 12 V supply negative | Common ground reference |
+
+---
+
+## PWM Setting
+
+The Uno R4 PlatformIO core used here does not expose a global
+`analogWriteFrequency()` API. The manual-mode firmware sets D9 PWM to 20 kHz
+with the Renesas `PwmOut` API:
+
+```cpp
+motorPwm.begin(20000.0f, 0.0f);
+```
+
+This is required for stable DMM average-voltage readings during Phase 1.
 
 ---
 
@@ -96,13 +110,13 @@ The motor current path should be kept short and direct. Do not route high motor 
 
 ## Motor Direction Convention Used in Test Sketch
 
-| Command | IN1 | IN2 | ENA PWM | Meaning |
+| Internal direction | IN1 | IN2 | ENA PWM | Meaning |
 |---|---|---|---|---|
-| Positive PWM | HIGH | LOW | `abs(pwm)` | Forward command |
-| Negative PWM | LOW | HIGH | `abs(pwm)` | Reverse command |
-| Zero PWM | LOW | LOW | `0` | Coast / stop |
+| `fwd` | HIGH | LOW | typed PWM magnitude | Forward command |
+| `rev` | LOW | HIGH | typed PWM magnitude | Reverse command |
+| stopped | LOW | LOW | `0` | Coast / stop |
 
-If the physical direction is opposite of your preferred convention, either swap motor leads at `OUT1`/`OUT2` or invert the sign convention in code.
+If the physical direction is opposite of your preferred convention, either swap motor leads at `OUT1`/`OUT2` or invert the direction convention in code.
 
 If encoder count decreases during your chosen forward motion, either swap encoder `A`/`B` or set `ENCODER_SIGN = -1` in the test sketch.
 
@@ -116,9 +130,9 @@ If encoder count decreases during your chosen forward motion, either swap encode
 4. Open Serial Monitor at `230400` baud.
 5. Rotate motor shaft by hand and check encoder count.
 6. Turn ON 12 V motor supply.
-7. Send `f` for low forward PWM.
+7. Send `f`, then a safe PWM magnitude such as `80`.
 8. Send `s` to stop.
-9. Send `r` for low reverse PWM.
+9. Send `r`, then the same safe PWM magnitude.
 10. Confirm motor direction and encoder sign.
 
 ---
@@ -128,13 +142,8 @@ If encoder count decreases during your chosen forward motion, either swap encode
 | Serial Key | Action |
 |---|---|
 | `s` | Stop / coast |
-| `f` | Forward low PWM |
-| `F` | Forward higher PWM |
-| `r` | Reverse low PWM |
-| `R` | Reverse higher PWM |
-| `+` | Increase command by 10 PWM |
-| `-` | Decrease command by 10 PWM |
-| `a` | Automatic forward-stop-reverse-stop test |
+| `f` | Set forward direction |
+| `r` | Set reverse direction |
+| `0..255` | Set PWM magnitude |
 | `z` | Zero encoder count |
 | `?` | Print help menu |
-
