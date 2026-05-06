@@ -304,15 +304,18 @@ Do **not** proceed until Phase 0 is trustworthy.
 
 # PHASE 1 — Static Characterization
 
-## 1.1 Static Sweep (separate forward and reverse)
+## 1.1 Static Sweep (combined forward/reverse CSV)
 
 ### Raw files
-- `static_sweep_fwd_runNN.csv`
-- `static_sweep_rev_runNN.csv`
+- `static_sweep_YYYYMMDD_runN.csv`
+- First completed run: `static_sweep_20260506_run1.csv`
 
 Use typed PWM magnitudes for both directions:
 - `pwm_cmd`: `0, 10, 20, ..., 250, 255`
 - `direction`: `fwd` or `rev`
+
+Store both directions in one file. Do not split forward and reverse into
+separate raw files unless there is a bench-process reason to do so.
 
 Raw CSV schema:
 ```text

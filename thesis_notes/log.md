@@ -48,3 +48,21 @@ Diagnosis:
 Decision:
 
 - Not ready for full static sweep until the PWM=150 gate is repeated after uploading the fixed firmware.
+
+## 2026-05-06 - Phase 1.1 static sweep ingestion
+
+- Raw data file added: `data/raw/static_sweep_20260506_run1.csv`
+- Source file copied from: `/Users/piyush/Downloads/static_sweep_20260506_run1.csv`
+- File format: single combined forward/reverse CSV with `direction` column
+- Schema: `pwm_cmd,direction,vmean_v,rpm,notes`
+- Row count: 52 total rows
+- Direction counts: 26 `fwd`, 26 `rev`
+- PWM range: 10 to 255 for both directions
+- Measured fields retained in raw data: PWM command, direction, motor average voltage, steady RPM, and notes with CH1/CH2/math/current details
+- Confirmed deadzone boundary used for first analysis notebook: +/-130 PWM
+
+Work completed:
+
+- Replaced generic static-map notebook with dataset-specific `notebooks/01_static_map.ipynb`.
+- Notebook outputs four figures under `figures/`.
+- Derived slopes and asymmetry ratios remain in notebook outputs, not in the raw CSV.

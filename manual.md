@@ -169,12 +169,27 @@ pwm_cmd,direction,vmean_v,rpm,notes
 Do not add scope-only fields such as `vmax` or `duty`. Do not add derived
 columns to raw data.
 
-### Forward Sweep
+### Combined Sweep File
 
-Create the raw file:
+For Phase 1.1, prefer one combined file for both directions:
+
+```text
+data/raw/static_sweep_YYYYMMDD_runN.csv
+```
+
+The `direction` column records `fwd` or `rev`, so filename parsing is not
+needed. The first completed combined run is:
+
+```text
+data/raw/static_sweep_20260506_run1.csv
+```
+
+### Forward Rows
+
+If creating a new combined file from the template:
 
 ```bash
-cp data/templates/static_sweep_template.csv data/raw/static_sweep_fwd_run01.csv
+cp data/templates/static_sweep_template.csv data/raw/static_sweep_YYYYMMDD_runN.csv
 ```
 
 Fill `direction` as `fwd` for every row.
@@ -188,15 +203,9 @@ Procedure for each PWM value:
 5. Copy the latest RPM from serial telemetry.
 6. Fill `vmean_v`, `rpm`, and `notes`.
 
-### Reverse Sweep
+### Reverse Rows
 
-Create the raw file:
-
-```bash
-cp data/templates/static_sweep_template.csv data/raw/static_sweep_rev_run01.csv
-```
-
-Fill `direction` as `rev` for every row.
+Use the same combined CSV and fill `direction` as `rev` for the reverse rows.
 
 Procedure for each PWM value:
 
@@ -212,15 +221,12 @@ The `direction` column records reverse, and RPM should be negative.
 
 ### Repeat Runs
 
-Collect at least three runs per direction:
+Collect at least three combined runs:
 
 ```text
-static_sweep_fwd_run01.csv
-static_sweep_fwd_run02.csv
-static_sweep_fwd_run03.csv
-static_sweep_rev_run01.csv
-static_sweep_rev_run02.csv
-static_sweep_rev_run03.csv
+static_sweep_YYYYMMDD_run1.csv
+static_sweep_YYYYMMDD_run2.csv
+static_sweep_YYYYMMDD_run3.csv
 ```
 
 Record warm/cold state and any bench changes in `thesis_notes/log.md`.

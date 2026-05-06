@@ -1,0 +1,53 @@
+pwm_cmd,direction,vmean_v,rpm,notes
+10,fwd,-0.22,0.0,Ch1=12.2; Ch2=12.4; Math=-220mV; PSU_current_A=0.00
+20,fwd,-0.247,0.0,Ch1=11.7; Ch2=11.9; Math=-247mV; PSU_current_A=0.01
+30,fwd,-0.24,0.0,Ch1=11.2; Ch2=11.3; Math=-240mV; PSU_current_A=0.02
+40,fwd,-0.245,0.0,Ch1=10.7; Ch2=10.8; Math=-245mV; PSU_current_A=0.02
+50,fwd,-0.355,0.0,Ch1=3.9-4.1V; Ch2=4.7V; Math=-355mV; PSU_current_A=0.04
+60,fwd,-0.361,0.0,Ch1=3.76; Ch2=4.05; Math=-361mV; PSU_current_A=0.05
+70,fwd,-0.324,0.0,Ch1=4.05; Ch2=4.30; Math=-324mV; PSU_current_A=0.06
+80,fwd,-0.33,0.0,Ch1=4.45; Ch2=4.69; Math=-330mV; PSU_current_A=0.08
+90,fwd,-0.267,0.0,Ch1=4.85V; Ch2=5.05; Math=-267mV; PSU_current_A=0.10
+100,fwd,-0.251,0.0,Ch1=5.28; Ch2=5.43; Math=-251mV; PSU_current_A=0.12
+110,fwd,-0.218,0.0,Ch1=5.71; Ch2=5.83; Math=-218mV; PSU_current_A=0.14
+120,fwd,-0.184,0.0,Ch1=6.11; Ch2=6.22; Math=-184mV; PSU_current_A=0.16
+130,fwd,0.925,27.0,Ch1=6.77-6.89; Ch2=5.37-6.0; Math=0.700-1.15V; RPM=23-31; PSU_current_A=0.18; midpoint used
+140,fwd,1.42,44.0,Ch1=7.2; Ch2=5.65; RPM=41-47; PSU_current_A=0.20; rpm midpoint used
+150,fwd,1.74,54.5,Ch1=7.8; Ch2=5.81; RPM=52-57; PSU_current_A=0.22; rpm midpoint used
+160,fwd,2.2,70.0,Ch1=8.06; Ch2=5.74; RPM=68-72; PSU_current_A=0.24; rpm midpoint used
+170,fwd,2.72,72.5,Ch1=8.3; Ch2=5.65; RPM=71-74; PSU_current_A=0.25; rpm midpoint used
+180,fwd,3.05,88.0,Ch1=8.6; Ch2=5.16; RPM=86-90; PSU_current_A=0.26; rpm midpoint used
+190,fwd,3.74,108.0,Ch1=8.73-8.94; Ch2=4.8; RPM=106-110; PSU_current_A=0.29-0.30; rpm midpoint used
+200,fwd,4.85,130.5,Ch1=9.25-9.44; Ch2=4.4-4.6; RPM=129-132; PSU_current_A=0.33; rpm midpoint used
+210,fwd,5.7,150.5,Ch1=9.83; Ch2=4.09; RPM=148-153; PSU_current_A=0.35-0.36; rpm midpoint used
+220,fwd,6.47,176.0,Ch1=10.1; Ch2=3.57; RPM=174-178; PSU_current_A=0.40; rpm midpoint used
+230,fwd,7.24,194.0,Ch1=10.6; Ch2=3.32; RPM=191-197; PSU_current_A=0.42; rpm midpoint used
+240,fwd,8.41,223.0,Ch1=11.2; Ch2=2.78; RPM=220-226; PSU_current_A=0.45; rpm midpoint used
+250,fwd,8.65,230.5,Ch1=11.2; Ch2=2.55; RPM=229-232; PSU_current_A=0.45; rpm midpoint used
+255,fwd,8.71,232.0,Ch1=11.2; Ch2=2.45; RPM=230-234; PSU_current_A=0.44; rpm midpoint used
+10,rev,-0.26,0.0,Input=-10; Ch1=12.1; Ch2=12.3; Math=-260mV; PSU_current_A=0.00
+20,rev,-0.275,0.0,Input=-20; Ch1=11.7; Ch2=11.9; Math=-275mV; PSU_current_A=0.00
+30,rev,-0.306,0.0,Input=-30; Ch1=11.1; Ch2=11.4; Math=-306mV; PSU_current_A=0.01
+40,rev,-0.345,0.0,Input=-40; Ch1=10.7; Ch2=10.9; Math=-345mV; PSU_current_A=0.02
+50,rev,-0.359,0.0,Input=-50; Ch1=10.2; Ch2=10.5; Math=-359mV; PSU_current_A=0.04
+60,rev,-0.404,0.0,Input=-60; Ch1=9.75; Ch2=10.1; Math=-404mV; PSU_current_A=0.05
+70,rev,-0.422,0.0,Input=-70; Ch1=9.22; Ch2=9.58; Math=-422mV; PSU_current_A=0.06
+80,rev,-0.475,0.0,Input=-80; Ch1=8.77; Ch2=9.15; Math=-475mV; PSU_current_A=0.07
+90,rev,-0.506,0.0,Input=-90; Ch1=8.37; Ch2=8.77; Math=-506mV; PSU_current_A=0.09
+100,rev,-0.558,0.0,Input=-100; Ch1=7.95; Ch2=8.41; Math=-558mV; PSU_current_A=0.12
+110,rev,-0.48,0.0,Input=-110; Ch1=7.51; Ch2=7.99; vmean set as Ch1-Ch2=-0.48V per correction; PSU_current_A=0.12
+120,rev,-0.62,0.0,Input=-120; Ch1=7.20; Ch2=7.71; Math=-620mV; PSU_current_A=0.14
+130,rev,-2.05,-36.5,Input=-130; Ch1=6.5-6.7; Ch2=8.46; RPM=-33 to -40; PSU_current_A=0.18; rpm midpoint used
+140,rev,-2.39,-51.5,Input=-140; Ch1=5.97; Ch2=8.71; RPM=-49 to -54; PSU_current_A=0.20; rpm midpoint used
+150,rev,-3.17,-65.0,Input=-150; Ch1=5.54; Ch2=8.43; RPM=-63 to -67; PSU_current_A=0.22; rpm midpoint used
+160,rev,-3.48,-78.5,Input=-160; Ch1=5.06; Ch2=8.49; RPM=-77 to -80; PSU_current_A=0.24; rpm midpoint used
+170,rev,-3.78,-83.5,Input=-170; Ch1=4.83; Ch2=8.59; RPM=-82 to -85; PSU_current_A=0.24; rpm midpoint used
+180,rev,-4.13,-94.5,Input=-180; Ch1=4.63; Ch2=8.67; RPM=-93 to -96; PSU_current_A=0.26; rpm midpoint used
+190,rev,-4.83,-115.5,Input=-190; Ch1=4.38; Ch2=9.11; RPM=-114 to -117; PSU_current_A=0.30; rpm midpoint used
+200,rev,-5.79,-135.0,Input=-200; Ch1=3.98; Ch2=9.5; RPM=-134 to -136; PSU_current_A=0.33; rpm midpoint used
+210,rev,-6.37,-156.0,Input=-210; Ch1=3.70; Ch2=10.0; RPM=-155 to -157; PSU_current_A=0.36; rpm midpoint used
+220,rev,-7.27,-177.5,Input=-220; Ch1=3.30; Ch2=10.4; RPM=-176 to -179; PSU_current_A=0.39; rpm midpoint used
+230,rev,-7.97,-199.0,Input=-230; Ch1=3.0; Ch2=10.8; RPM=-199; PSU_current_A=0.42
+240,rev,-8.93,-225.0,Input=-240; Ch1=2.40; Ch2=11.3; RPM=-225; PSU_current_A=0.46
+250,rev,-9.27,-233.5,Input=-250; Ch1=2.15; Ch2=11.2; RPM=-232 to -235; PSU_current_A=0.46; rpm midpoint used
+255,rev,-9.35,-239.0,Input=-255; Ch1=1.96; Ch2=11.3; RPM=-238 to -240; PSU_current_A=0.46; rpm midpoint used

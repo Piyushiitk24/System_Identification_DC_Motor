@@ -21,7 +21,14 @@ Rules:
 Suggested filenames:
 
 ```text
-static_sweep_fwd_run01.csv
-static_sweep_rev_run01.csv
+static_sweep_YYYYMMDD_runN.csv
 dmm_stability_check_run01.csv
+```
+
+For Phase 1.1, prefer one combined static sweep file containing both
+directions and using the `direction` column to distinguish `fwd` from `rev`.
+The first completed run is:
+
+```text
+static_sweep_20260506_run1.csv
 ```
