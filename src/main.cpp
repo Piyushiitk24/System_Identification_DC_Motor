@@ -34,7 +34,7 @@ constexpr uint8_t PIN_ENA = 9;
 constexpr float COUNTS_PER_REV = 2400.0f;
 
 // If forward command produces negative RPM, set this to -1.
-constexpr int8_t ENCODER_SIGN = 1;
+constexpr int8_t ENCODER_SIGN = -1;
 
 volatile long encoderCount = 0;
 volatile uint8_t prevAB = 0;
