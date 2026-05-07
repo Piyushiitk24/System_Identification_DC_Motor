@@ -148,3 +148,41 @@ Cascade decomposition further supported: the disagreement signature lives
 exactly where thermal/nonlinear effects are predicted (static block), and
 fwd-vs-rev asymmetry in the disagreement matches the asymmetry in v_motor
 thermal response.
+
+## 2026-05-07 — Phase 2.1 FOPDT heuristic fit (notebook 03 cells 7–13)
+
+Fitted FOPDT (K_ss, Td, tau) to all 18 step-up trials using a 63.2% rise
+heuristic. All fits succeeded.
+
+Per-condition aggregates (mean ± std, n=3):
+
+  fwd 160:  K = 52.4±3.1   Td = 20±17   tau = 167±23   [friction-dominated]
+  fwd 200:  K =123.9±1.3   Td = 10±0    tau =  97±6
+  fwd 240:  K =210.5±4.7   Td = 10±0    tau = 173±6
+  rev 160:  K =-69.8±1.8   Td = 17±12   tau = 170±26   [friction-dominated]
+  rev 200:  K=-131.8±0.7   Td = 10±0    tau =  90±0
+  rev 240:  K=-222.7±2.5   Td = 10±0    tau = 170±10
+
+Findings:
+
+(1) τ is operating-point dependent. PWM=200 → PWM=240: τ rises from
+    ~95 ms to ~170 ms (80% increase). Error bars non-overlapping.
+    Model B (single global τ) is misspecified. Model C (region-dependent
+    dynamics) is justified.
+
+(2) Dynamic block is direction-symmetric. τ_fwd ≈ τ_rev within std at
+    every PWM. This confirms the cascade decomposition: asymmetry lives
+    in the static block, not the motor.
+
+(3) Td above deadzone = 10 ms exactly (std=0 across 12 trials at
+    PWM=200,240). Operating-point invariant, direction-invariant.
+    Identified as encoder + serial sample latency.
+
+(4) τ shows a V-shape with minimum at PWM=200. Slow at PWM=160 due to
+    friction; slow at PWM=240 cause TBD — either non-first-order
+    dynamics or back-EMF/saturation effects. Will be diagnosed by
+    curve_fit residuals (next step).
+
+Caveat: τ values from a 63.2% rise heuristic, which assumes first-order
+response. Promotion to scipy.curve_fit with residual analysis is the
+next step before declaring Model C parameters final.
