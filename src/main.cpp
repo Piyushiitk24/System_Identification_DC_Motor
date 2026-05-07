@@ -134,6 +134,15 @@ const int NUM_TRIALS = sizeof(trials) / sizeof(trials[0]);
 // ----- Trial runner -----
 constexpr uint32_t LOG_INTERVAL_US     = 10000;  // 10 ms telemetry
 constexpr uint32_t INTER_TRIAL_REST_MS = 3000;
+constexpr uint32_t READY_PRINT_MS      = 3000;
+
+void printReadyBanner() {
+    Serial.println(F("# step_response_v1 ready"));
+    Serial.print  (F("# Total trials: "));
+    Serial.println(NUM_TRIALS);
+    Serial.println(F("# Send 'GO' to start the full sequence"));
+    Serial.println(F("# Send 'STOP' between trials to halt"));
+}
 
 void runTrial(const Trial& t) {
     // Inter-trial rest
@@ -236,14 +245,17 @@ void setup() {
     stopMotor();
     delay(2000);
 
-    Serial.println(F("# step_response_v1 ready"));
-    Serial.print  (F("# Total trials: "));
-    Serial.println(NUM_TRIALS);
-    Serial.println(F("# Send 'GO' to start the full sequence"));
-    Serial.println(F("# Send 'STOP' between trials to halt"));
+    printReadyBanner();
 }
 
 void loop() {
+    static uint32_t last_ready_print_ms = 0;
+
+    if (millis() - last_ready_print_ms >= READY_PRINT_MS) {
+        printReadyBanner();
+        last_ready_print_ms = millis();
+    }
+
     if (Serial.available() > 0) {
         String cmd = Serial.readStringUntil('\n');
         cmd.trim();
@@ -263,6 +275,8 @@ void loop() {
         } else if (cmd == "STOP") {
             stopMotor();
             Serial.println(F("# Motor stopped"));
+        } else if (cmd == "?") {
+            printReadyBanner();
         } else if (cmd.length() > 0) {
             Serial.print(F("# Unknown command: "));
             Serial.println(cmd);
