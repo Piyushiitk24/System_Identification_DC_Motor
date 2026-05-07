@@ -236,3 +236,63 @@ Outstanding questions to address with step-down trials (12 reserved):
   - Does decel dynamics match accel dynamics? (Model B/C
     region structure depends on this)
   - Does breakaway-vs-dropout hysteresis show up dynamically?
+
+## 2026-05-07 — Phase 2.1 step-down analysis + synthesis (notebook 03 cells 18–25)
+
+Fitted FOPDT decay model to all 12 step-down trials using a fit window
+restricted to t >= 2000 ms (exclude pre-step ramp). All fits succeeded.
+
+Per-condition aggregates (n=3):
+
+  fwd 240→0:   y_init=214.3   y_final= -0.7   Td=55.2±2.0   tau=172.2± 1.8
+  fwd 240→160: y_init=215.7   y_final= 73.75  Td=14.1±5.2   tau=275.3± 8.8
+  rev 240→0:   y_init=-229.1  y_final= -0.0   Td=62.9±3.9   tau=189.5± 3.9
+  rev 240→160: y_init=-231.7  y_final=-85.66  Td=10.0±0.4   tau=306.4± 4.0
+
+Findings:
+
+(1) Decel τ > accel τ in the same operating range. fwd 240→160 decel
+    τ=275 ms is larger than any accel τ in 200–240 PWM range (95–152).
+    Accel/decel asymmetry justifies *_accel vs *_decel region split
+    in Model C.
+
+(2) Decel-to-160 (~290 ms) slower than decel-to-0 (~180 ms). Likely
+    L298N PWM-chopping prevents regenerative braking at PWM=160 that
+    pure coast (PWM=0) provides.
+
+(3) Direction asymmetry pattern OPPOSITE in accel vs decel:
+    - accel: rev faster (15% gap at PWM=200)
+    - decel: rev slower (11% gap at 240→160)
+    Symmetric magnitude, opposite direction. Indicates partial coupling
+    between static and dynamic blocks; cascade decomposition holds
+    but is not perfectly clean. Thesis caveat.
+
+(4) SS hysteresis at PWM=160 confirmed in both directions:
+    - fwd: 73.75 (from above) vs 52.4 (from below) → 40% gap
+    - rev: -85.66 (from above) vs -69.75 (from below) → 23% gap
+    Bigger gap in fwd matches bigger fwd breakaway (Phase 1.2).
+    Stribeck/Coulomb extension (Model D) empirically motivated.
+
+(5) y_final at 240→0 ≈ 0 in both directions (-0.69 fwd, -0.00 rev).
+    Motor coasts cleanly to rest. FOPDT τ for coast (172/190 ms) is
+    an effective parameter — model is technically misspecified
+    (Coulomb-dominated friction is not first-order) but residuals
+    remain well-bounded.
+
+Phase 2.1 complete. Locked-in Model C parameter set:
+
+  Static block:    K_fwd=26.94 rpm/V, K_rev=24.52 rpm/V (from 01)
+  Deadzone:        breakaway 154/144, dropout 114/112 (Phase 1.2)
+                   SS hysteresis at PWM=160: ~21 rpm fwd, ~16 rpm rev
+  Td (above DZ):   ~10 ms (encoder/serial latency)
+  Accel τ:         PWM=200: 95/81 ms (fwd/rev) — clean FOPDT
+                   PWM=240: 152/144 ms — FOPDT misspecified, effective
+                   PWM=160: 200/192 ms — friction-corrupted
+  Decel τ:         240→160: 275/306 ms (fwd/rev)
+                   240→0:   172/190 ms (fwd/rev)
+
+Outstanding gaps for future work:
+  - Step-ups from PWM<150 (below breakaway) — breakaway dynamics
+  - Step-downs to PWM other than {0, 160} — decel τ as function of
+    target PWM
+  - Step-ups to PWM=255 — extend top of operating range
