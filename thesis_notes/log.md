@@ -186,3 +186,53 @@ Findings:
 Caveat: τ values from a 63.2% rise heuristic, which assumes first-order
 response. Promotion to scipy.curve_fit with residual analysis is the
 next step before declaring Model C parameters final.
+
+## 2026-05-07 — Phase 2.1 FOPDT curve_fit promotion (notebook 03 cells 14–17)
+
+Promoted FOPDT fits from 63.2% heuristic to scipy.curve_fit on all 18
+step-up trials. All fits succeeded. Per-condition aggregates:
+
+  fwd 160:  K=  52.1   Td= 0.0     tau= 200.1±22.0   rms_rise= 2.61
+  fwd 200:  K= 123.5   Td= 4.9±0.9 tau=  95.1± 4.6   rms_rise= 2.48
+  fwd 240:  K= 209.7   Td=17.1±0.7 tau= 152.3± 2.7   rms_rise= 4.69
+  rev 160:  K= -69.6   Td= 0.0     tau= 191.7±12.2   rms_rise= 4.03
+  rev 200:  K=-131.4   Td= 5.6±0.3 tau=  81.2± 0.9   rms_rise= 2.66
+  rev 240:  K=-222.6   Td=23.5±0.6 tau= 144.4± 2.5   rms_rise= 7.17
+
+Findings:
+
+(1) V-shape in τ confirmed by curve_fit. τ minimum at PWM=200 (~88 ms
+    averaging fwd/rev), τ rises at both PWM=160 (~196 ms) and PWM=240
+    (~148 ms). Consistent across heuristic and curve_fit methods.
+
+(2) Td shows operating-point dependence in curve_fit (0 / 5 / 20 ms at
+    PWM 160/200/240) — opposite to the heuristic's claim of constant
+    10 ms. Interpretation: this is NOT physical encoder latency; it is
+    the FOPDT model compensating for non-first-order rise shape at the
+    PWM extremes. The "real" Td is the heuristic's first-non-zero-RPM
+    value (~10 ms), which curve_fit shifts to absorb model-shape error.
+
+(3) Residual structure confirms FOPDT is well-specified at PWM=200
+    (random ±2–3 rpm scatter) and increasingly mis-specified at
+    PWM=160 (friction-onset structure) and PWM=240 (smooth-onset
+    structure during rise). RMS rise residual climbs from 2.5 rpm
+    (PWM=200) to 7.2 rpm (rev PWM=240).
+
+(4) Direction symmetry of dynamic block holds at PWM=160 and PWM=240
+    within std. Small 14 ms gap at PWM=200 (fwd 95 vs rev 81) is
+    statistically significant and worth a thesis caveat — possible
+    static/dynamic block coupling or motor commutation asymmetry —
+    but does not invalidate the cascade decomposition.
+
+Model C accepted as the working model:
+  - PWM=200 is the canonical linear-regime operating point
+    (FOPDT clean, τ ≈ 88 ms, Td ≈ 5 ms)
+  - PWM=240 parameters are effective FOPDT, not true LTI
+    (motivates higher-order dynamic block extension)
+  - PWM=160 parameters are friction-corrupted
+    (motivates Stribeck/Coulomb extension in Model D)
+
+Outstanding questions to address with step-down trials (12 reserved):
+  - Does decel dynamics match accel dynamics? (Model B/C
+    region structure depends on this)
+  - Does breakaway-vs-dropout hysteresis show up dynamically?
