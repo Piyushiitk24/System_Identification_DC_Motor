@@ -231,7 +231,7 @@ void setup() {
     Serial.begin(230400);
     while (!Serial && millis() < 3000) {}
 
-    motorPwm.begin(20000.0f);
+    motorPwm.begin(20000.0f, 0.0f);
     motorPwm.pulse_perc(0.0f);
     stopMotor();
     delay(2000);
