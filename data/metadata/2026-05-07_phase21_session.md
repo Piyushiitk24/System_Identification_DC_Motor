@@ -39,27 +39,34 @@
 
 ## Issues encountered
 
-[Note any anomalies, retries, board resets, motor stalls, etc.]
+- No capture anomaly observed in the final run.
+- Note for quick-look interpretation: step-down trials begin logging immediately after the start PWM is applied, so the first ~500 ms show spin-up to the 240 PWM hold speed before the 3000 ms step down.
 
 ---
 
 ## Post-run verification (tick after capture)
 
-- [ ] Serial log file contains `=== SEQUENCE COMPLETE ===`
-- [ ] `split_log.py` reports 30 trials found
-- [ ] All 30 CSV files present in `data/raw/step_responses/`
-- [ ] Step-up trials: ~550 data rows each (5.5 s @ 10 ms)
-- [ ] Step-down trials: ~800 data rows each (8.0 s @ 10 ms)
-- [ ] `step_up_fwd_*` files: RPM positive after step
-- [ ] `step_up_rev_*` files: RPM negative after step
-- [ ] No CSV has truncated content or stray non-numeric rows
+- [x] Serial log file contains `=== SEQUENCE COMPLETE ===`
+- [x] `split_log.py` reports 30 trials found
+- [x] All 30 CSV files present in `data/raw/step_responses/`
+- [x] Step-up trials: ~550 data rows each (5.5 s @ 10 ms)
+- [x] Step-down trials: ~800 data rows each (8.0 s @ 10 ms)
+- [x] `step_up_fwd_*` files: RPM positive after step
+- [x] `step_up_rev_*` files: RPM negative after step
+- [x] No CSV has truncated content or stray non-numeric rows
 
 ## Quick-look spot checks (open one of each in a viewer)
 
-- [ ] `step_up_fwd_240_run01.csv`: RPM rises from ~0 to ~225, smooth curve
-- [ ] `step_up_rev_240_run01.csv`: RPM falls from ~0 to ~−235
-- [ ] `step_down_fwd_240to0_run01.csv`: RPM holds ~225 then decays toward 0
+- [x] `step_up_fwd_240_run01.csv`: RPM rises from ~0 and settles near 205 rpm, smooth curve
+- [x] `step_up_rev_240_run01.csv`: RPM falls from ~0 and settles near -220 rpm
+- [x] `step_down_fwd_240to0_run01.csv`: RPM reaches hold speed during pre-step interval, holds until 3000 ms, then decays toward 0
 
 ## Notes
 
-[Anything to remember when analysing or interpreting this dataset]
+- Source serial log: `data/raw/serial_logs/2026-05-06_phase21_session.log`.
+- Split verification: 30 CSVs exactly match the 30 `=== START ... ===` blocks in the serial log.
+- Row counts verified: step-up trials have 550-551 data rows; step-down trials have 800-801 data rows.
+- Spot-check window means:
+  - `step_up_fwd_240_run01.csv`: 0 rpm before 500 ms; settled final 1 s mean about 205.5 rpm.
+  - `step_up_rev_240_run01.csv`: 0 rpm before 500 ms; settled final 1 s mean about -219.9 rpm.
+  - `step_down_fwd_240to0_run01.csv`: 2500-3000 ms mean about 215.2 rpm; final 1 s mean 0 rpm.

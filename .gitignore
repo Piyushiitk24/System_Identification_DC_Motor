@@ -81,6 +81,7 @@ site/
 *.tmp
 *.temp
 *.log
+!data/raw/serial_logs/*.log
 *.bak
 *.orig
 *.rej
