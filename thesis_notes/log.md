@@ -66,3 +66,35 @@ Work completed:
 - Replaced generic static-map notebook with dataset-specific `notebooks/01_static_map.ipynb`.
 - Notebook outputs four figures under `figures/`.
 - Derived slopes and asymmetry ratios remain in notebook outputs, not in the raw CSV.
+
+## 2026-05-07 - Phase 1.1 static-map interpretation
+
+Headline finding from Plot 3:
+
+- Static-block-only asymmetry hypothesis confirmed by Phase 1.1 sweep: V-to-RPM gain is symmetric within about 9% across direction.
+- Forward motor gain: `K_fwd = 26.94 rpm/V`.
+- Reverse motor gain magnitude: `K_rev = 24.52 rpm/V` (`K_rev` is negative when signed).
+- The large directional asymmetry appears mainly in the PWM-to-voltage map, not in the voltage-to-RPM map.
+
+Interpretation:
+
+- Reverse produces about 7% more delivered motor voltage at high PWM and more than 2x the forward voltage at some low PWM points.
+- Once delivered motor voltage is used as the input, forward and reverse RPM gains are close.
+- This supports the cascade decomposition: the static driver block captures L298N voltage asymmetry, while the motor dynamic block is approximately direction-symmetric.
+- Physical explanation: the DC motor is nearly electromagnetically symmetric, while the L298N output stages are not because different switch paths have different saturation drops.
+
+Thesis note:
+
+- This is a defensible result for using a cascaded structure: `PWM command -> driver/static voltage block -> motor dynamic block`.
+
+## 2026-05-06 - Deadzone hysteresis
+
+Phase 1.2 complete via manual ramp.
+
+- Multiple manual ramp runs in both directions show breakaway PWM approximately 150: fwd 154, rev 144.
+- Dropout PWM approximately 113: fwd 114, rev 112.
+- Hysteresis band is about 32-40 PWM wide.
+- Phase 1.1 staircase sweep showed breakaway at PWM=130 because the staircase steps deliver enough torque for kinetic motion above dropout but caught a stochastic breakaway.
+- True breakaway is higher and stochastic.
+- Model implication: deadzone block must include hysteresis.
+- Phase 1.2 closed; data saved in `data/raw/deadzone_manual_run01.csv`.

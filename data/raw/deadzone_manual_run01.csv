@@ -1,0 +1,5 @@
+direction,sweep_type,pwm_threshold,ch1_mean_v,ch2_mean_v,vmotor_v,rpm,psu_current_a,notes
+fwd,up,154,8.0,5.8,2.30,55.0,0.24,multiple_manual_runs_consistent;rpm_range:53-57;psu_range:0.23-0.25
+fwd,down,114,5.9,5.93,-0.130,0.0,0.15,multiple_manual_runs_consistent;dropout
+rev,up,144,5.98,8.31,-2.30,-55.0,0.21,multiple_manual_runs_consistent;rpm_range:-53_to_-57
+rev,down,112,5.8,5.84,-0.136,0.0,0.14,multiple_manual_runs_consistent;dropout
