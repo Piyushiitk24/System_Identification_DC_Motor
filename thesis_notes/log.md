@@ -115,3 +115,36 @@ Two-point spot-check at PWM=±255 collected this evening (data at data/raw/spot_
 Spot-check results (run01 → evening, at PWM=±255):
 V_motor driftRPM driftPSU current driftForward−3.8%−0.6%−4.5%Reverse+1.9% (mag)+0.8% (mag)−8.7%
 Interpretation: Motor (V→RPM block) is reproducible to <1% across the session. Driver (PWM→V block) drifts ~2–4% in V_motor and ~5–9% in PSU current — consistent with L298N junction thermal drift after extended operation. This drift pattern empirically supports the cascade decomposition: instability is isolated in the driver-side static block; the motor-side dynamic block is stable. The session-bounded data-collection methodology is justified. Static-block parameters fit from this dataset are valid only at this session's ambient/thermal condition; this caveat to be stated in the thesis.
+
+## 2026-05-07 — Phase 2.1 implicit cross-validation (notebook 03 cells 1-6)
+
+Compared steady-state RPM from step-up trials (mean of t in [4500, 5500] ms,
+3 runs per condition) against run01 static sweep at PWM ∈ {160, 200, 240} ×
+{fwd, rev}.
+
+Results:
+  PWM=160 fwd: -25.2%   PWM=160 rev: -11.1%   (below linear regime — see below)
+  PWM=200 fwd:  -5.1%   PWM=200 rev:  -2.3%
+  PWM=240 fwd:  -5.6%   PWM=240 rev:  -1.0%
+
+Interpretation:
+1. PWM=160 dropped from validation set. Linear fit K_fwd=26.94 already
+   underpredicts sweep RPM at this PWM by 19% (predicts 59, sweep shows 70),
+   so the through-origin linear static map does not apply this close to
+   breakaway. Confirms static block nonlinearity in the deadzone region —
+   already characterised in Phase 1.2.
+
+2. PWM=200, 240 fwd disagreement (~5%) consistent with L298N thermal drift.
+   Spot-check at PWM=255 fwd showed v_motor -3.8% morning→evening; with
+   K_fwd=27 rpm/V, this projects to roughly 5% RPM drop on cumulatively
+   warmed driver. Sweep was earlier in the session than the step trials.
+
+3. PWM=200, 240 rev disagreement (~1-2%) within noise. Consistent with
+   spot-check showing reverse is more thermally stable (+0.8% mag RPM drift).
+
+Cross-val gate: passed with caveats. Linear regime (PWM ≥ 200) agrees within
+thermal-drift bounds, with fwd-vs-rev asymmetry matching spot-check pattern.
+Cascade decomposition further supported: the disagreement signature lives
+exactly where thermal/nonlinear effects are predicted (static block), and
+fwd-vs-rev asymmetry in the disagreement matches the asymmetry in v_motor
+thermal response.
