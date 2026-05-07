@@ -296,3 +296,74 @@ Outstanding gaps for future work:
   - Step-downs to PWM other than {0, 160} — decel τ as function of
     target PWM
   - Step-ups to PWM=255 — extend top of operating range
+
+## 2026-05-07 — Phase 2.2 LOOCV validation
+
+**Notebook**: `notebooks/04_validation.ipynb` (cells 1–6f)
+
+### Context
+
+Original handover specified held-out validation against `data/raw/_sealed/`. Inventory probe (cell 5a) revealed the sealed directory does not exist on disk; `.gitignore` contains no entry for it either. **No truly held-out data exists.** Pivoted to leave-one-out cross-validation (LOOCV) on the 30 Phase 2.1 calibration trials.
+
+### Methodology
+
+For each of the 30 trials, predict the held-out trial using the **mean of per-trial fit parameters from the other 2 runs at the same condition**.
+
+- Per-trial params from `phase21_fopdt_curvefit_per_trial.csv` (18 accel) and `phase21_stepdown_curvefit_per_trial.csv` (12 decel).
+- `simulate_model_C` extended with optional `override_params` argument (cell 6b) to inject LOOCV-mean parameters per trial.
+- Sanity-checked: with `override_params` equal to the per-condition lookup, output is bit-for-bit identical (`max_diff = 0.0e+00`).
+- Residual windows aligned with curve_fit's optimization to enable apples-to-apples comparison:
+  - **Accel**: rise window `[STEP, STEP + 5τ]` → compared to per-trial `rms_rise`
+  - **Decel**: fit window `[2000, end]` → compared to per-trial `rms_total`
+- **Note on `rms_decel`**: per-trial decel CSV has both `rms_decel` and `rms_total`. Diagnostic (cell 6d-followup) confirmed `rms_total = residual on [2000, end]` exactly; `rms_decel` uses an undocumented window (~150 samples post-step, doesn't match natural τ multiples). Adopted `rms_total` as the comparison floor since it's principled (matches curve_fit's actual fit window). `rms_decel` definition is recoverable from notebook 03 if ever needed.
+
+### Schema notes (future self)
+
+- Trial CSV: `pwm_cmd` is **unsigned**; `dir` is string `{'F','R','N'}`. Construct signed PWM via `pwm_cmd * dir_sign` with `dir_sign = {'F':1,'R':-1,'N':0}`.
+- Per-trial fit table uses `Td_ms`, `tau_ms`; per-condition table uses `Td_mean`, `tau_mean`. Map at lookup.
+
+### Headline results
+
+- **Accel mean LOOCV excess: +1.06 rpm** (std 0.80, n=6 conditions)
+- **Decel mean LOOCV excess: +0.10 rpm** (std 0.10, n=4 conditions)
+- **Decel is ~10× more reproducible than accel.**
+- Worst condition: `accel fwd PWM=160`, excess +1.97 rpm (run01 friction-onset outlier)
+- All 30 trial-level RMSE values consistent with per-trial fit residuals on the apples-to-apples comparison.
+
+### New finding: accel/decel reproducibility asymmetry
+
+Decel parameters transfer between runs within a condition far more cleanly than accel parameters. **Physical hypothesis**: by the time decel begins, the motor has been running at PWM=240 SS for 3000 ms — thermally settled, friction stable, pole position randomized over many revolutions. Accel from rest catches the motor cold with stochastic friction breakaway and unknown rotor pole alignment. This effect was invisible in Phase 2.1's per-condition fits (which average across runs) but is exposed cleanly by LOOCV.
+
+This is a thesis observation worth foregrounding in the validation chapter alongside the existing accel-vs-decel τ asymmetry from Phase 2.1.
+
+### Anomalies
+
+- **`rev PWM=200 run3`**: LOOCV `rmse_rise = 2.28` *below* per-trial `rms_rise = 3.24`. Cause: run3 has anomalously noisy steady-state (`rms_ss_self = 5.03` vs sibling runs ~2.4). Curve_fit on run3 alone was pulled toward chasing that noise, inflating its rise residual; LOOCV uses params from cleaner runs 1+2, giving a smoother prediction that doesn't chase run3's SS noise. **This is LOOCV robustness, not a simulator bug.** No action required.
+
+### Files generated
+
+- `data/processed/phase21_loocv_accel.csv` — 18-row accel per-trial results (LOOCV params, self params, 3 RMSE windows, floors)
+- `data/processed/phase21_loocv_decel.csv` — 12-row decel per-trial results (LOOCV params, self params, 4 RMSE windows: fit_window/post/transient/ss, floors)
+- `data/processed/phase21_loocv_summary.csv` — 10-row per-condition summary
+- `figures/12_phase22_loocv_summary.png` — bar chart: LOOCV vs in-sample floor across all conditions, accel/decel split
+- `figures/13_phase22_loocv_grid.png` — 30-panel overlay grid for thesis appendix
+
+### Limitations
+
+- LOOCV stays within the calibration grid: PWM ∈ {160, 200, 240}, decel transitions ∈ {240→0, 240→160}. **Does not test extrapolation.**
+- No data from a separate bench session → does not test session-to-session generalization (thermal state, ambient T, motor age).
+- `data/raw/_sealed/` is empty (never populated; was an aspiration in the original handover, not a real artifact).
+
+### Open questions for thesis discussion
+
+- Why does fwd PWM=160 have a wider per-trial spread than rev PWM=160? (Asymmetric friction breakaway? Encoder direction-dependent quantization?)
+- The accel/decel reproducibility asymmetry — thermal stabilization is the most likely cause, but ambient-T was not logged for the Phase 2.1 session. Future bench sessions should record ambient T.
+
+### Next steps
+
+- **Phase 3 (closed-loop validation)** — requires (a) extending `simulate_model_C` to multi-event trajectories (currently raises `NotImplementedError` for >1 transition), (b) closed-loop bench data (PID step responses, ramp-tracking, or similar). Bench session needed.
+- **Optional gap-fill (open-loop)** — uncalibrated PWMs (180, 220) and decel targets other than {0, 160} to characterize interpolation within the calibration convex hull. Useful but not blocking the thesis.
+
+### Status
+
+**Phase 2.2: COMPLETE.** Validation methodology demonstrated, results saved, summary and appendix figures rendered. Cascade Model C is validated within its calibration grid via LOOCV with quantified excess (+1.06 rpm accel, +0.10 rpm decel). Ready to move to Phase 3 in next bench session.
