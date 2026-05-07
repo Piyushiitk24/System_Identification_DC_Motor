@@ -98,3 +98,20 @@ Phase 1.2 complete via manual ramp.
 - True breakaway is higher and stochastic.
 - Model implication: deadzone block must include hysteresis.
 - Phase 1.2 closed; data saved in `data/raw/deadzone_manual_run01.csv`.
+
+## 2026-05-06 evening - Phase 2.1 complete; Phase 1.1 expanded to 3 runs
+
+Phase 2.1 step-response data captured under `step_response_v1` firmware. 30 trials: 9 step-ups x 3 PWM levels (160, 200, 240) x 2 directions, plus 12 step-downs (240->0 and 240->160 x 2 directions x 3 runs). Ambient temp ___ deg C, PSU 12.0 V. Serial log at `data/raw/serial_logs/2026-05-06_phase21_session.log`, split CSVs at `data/raw/step_responses/`. Session metadata at `data/metadata/2026-05-07_phase21_session.md`. Firmware archived at `firmware_archive/step_response_v1.cpp`.
+
+Phase 1.1 run02 and run03 also collected with manual-mode firmware (archived at `firmware_archive/manual_mode_v1.cpp`). Same ambient conditions as morning's run01. Reproducibility data secured before next session, per concern about driver behaviour drift across days.
+
+2026-05-06 evening — Phase 1.1 reproducibility validated via spot-check + Phase 2.1 implicit cross-validation.
+Decision: full Phase 1.1 repeats deferred. Validation strategy adopted instead:
+
+Phase 1.2 manual ramp (multiple passes) validates the deadzone region.
+Phase 2.1 step-up steady-state values (last 1 s of each trial) will validate the above-deadzone region in 18 implicit data points; comparison to be done in notebooks/03_step_responses.ipynb.
+Two-point spot-check at PWM=±255 collected this evening (data at data/raw/spot_check_max_pwm_2026-05-06_evening.csv).
+
+Spot-check results (run01 → evening, at PWM=±255):
+V_motor driftRPM driftPSU current driftForward−3.8%−0.6%−4.5%Reverse+1.9% (mag)+0.8% (mag)−8.7%
+Interpretation: Motor (V→RPM block) is reproducible to <1% across the session. Driver (PWM→V block) drifts ~2–4% in V_motor and ~5–9% in PSU current — consistent with L298N junction thermal drift after extended operation. This drift pattern empirically supports the cascade decomposition: instability is isolated in the driver-side static block; the motor-side dynamic block is stable. The session-bounded data-collection methodology is justified. Static-block parameters fit from this dataset are valid only at this session's ambient/thermal condition; this caveat to be stated in the thesis.

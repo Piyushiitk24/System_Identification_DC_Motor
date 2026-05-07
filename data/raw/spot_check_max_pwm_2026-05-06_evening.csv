@@ -1,0 +1,3 @@
+pwm_cmd,direction,ch1_mean_v,ch2_mean_v,vmotor_v,rpm,psu_current_a,session,notes
+255,fwd,11.1,2.49,8.38,230.5,0.42,evening_spot_check_2026-05-06,rpm_range:229-232;midpoint_used;run01_comparison_V=-3.8%_RPM=-0.6%_I=-4.5%
+255,rev,1.9,11.4,-9.53,-241.0,0.42,evening_spot_check_2026-05-06,rpm_range:-239_to_-243;midpoint_used;run01_comparison_V=+1.9%_RPM=+0.8%_I=-8.7%
