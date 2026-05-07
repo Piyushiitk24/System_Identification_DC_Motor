@@ -1,6 +1,6 @@
-# ------------------------------
-# macOS / Finder clutter
-# ------------------------------
+# ---------------------------------------------------------------------------
+# OS / filesystem clutter
+# ---------------------------------------------------------------------------
 .DS_Store
 .DS_Store?
 .AppleDouble
@@ -9,10 +9,13 @@
 .Spotlight-V100/
 .Trashes/
 Icon?
+Thumbs.db
+ehthumbs.db
+Desktop.ini
 
-# ------------------------------
-# VS Code / editor state
-# ------------------------------
+# ---------------------------------------------------------------------------
+# Editors / local IDE state
+# ---------------------------------------------------------------------------
 .vscode/
 !.vscode/extensions.json
 !.vscode/settings.json
@@ -20,10 +23,25 @@ Icon?
 !.vscode/tasks.json
 !.vscode/*.code-snippets
 .history/
+.idea/
+*.sublime-workspace
+*.sublime-project
+*.swp
+*.swo
+*~
 
-# ------------------------------
-# PlatformIO build artifacts
-# ------------------------------
+# ---------------------------------------------------------------------------
+# Local environment and secrets
+# ---------------------------------------------------------------------------
+.env
+.env.*
+!.env.example
+.python-version
+.direnv/
+
+# ---------------------------------------------------------------------------
+# PlatformIO / embedded build artifacts
+# ---------------------------------------------------------------------------
 .pio/
 .pioenvs/
 .piolibdeps/
@@ -31,8 +49,6 @@ Icon?
 .pio/build/
 .pio/libdeps/
 .pio/.cache/
-
-# PlatformIO / embedded tooling logs and caches
 *.pio.log
 *.elf
 *.bin
@@ -43,22 +59,29 @@ Icon?
 *.lst
 *.sym
 *.srec
+*.d
+*.su
+*.gcno
+*.gcda
 
-# ------------------------------
-# Python virtual environments & cache
-# ------------------------------
+# ---------------------------------------------------------------------------
+# Python environments, packaging, and caches
+# ---------------------------------------------------------------------------
 .venv/
 venv/
 ENV/
 env/
-.python-version
+env.bak/
+venv.bak/
 __pycache__/
 *.py[cod]
 *.pyo
 *.pyd
 *.so
 *.egg-info/
-.build/
+*.egg
+.eggs/
+pip-wheel-metadata/
 dist/
 build/
 site/
@@ -67,28 +90,44 @@ site/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+.pyre/
 .tox/
 .nox/
 .hypothesis/
-.ipynb_checkpoints/
 
-# ------------------------------
-# IDE / OS temporary files
-# ------------------------------
-*.swp
-*.swo
-*~
+# ---------------------------------------------------------------------------
+# Jupyter / notebook runtime clutter
+# Keep committed .ipynb notebooks and generated figures trackable.
+# ---------------------------------------------------------------------------
+.ipynb_checkpoints/
+**/.ipynb_checkpoints/
+*.nbconvert.ipynb
+.jupyter/
+.ipython/
+
+# ---------------------------------------------------------------------------
+# Logs, temporary files, and local scratch
+# ---------------------------------------------------------------------------
 *.tmp
 *.temp
+*.tmp.*
+*.temp.*
 *.log
 !data/raw/serial_logs/*.log
 *.bak
 *.orig
 *.rej
+tmp/
+temp/
+scratch/
+outputs/
+local_outputs/
+run_outputs/
 
-# ------------------------------
+# ---------------------------------------------------------------------------
 # FreeCAD / CAD generated backups and temp files
-# ------------------------------
+# Keep source CAD/STL/STEP files trackable; ignore backup/scratch exports.
+# ---------------------------------------------------------------------------
 *.FCBak
 *.FCStd1
 *.FCStd2
@@ -101,9 +140,9 @@ site/
 *.step.tmp
 *.FCStd.bak
 
-# ------------------------------
+# ---------------------------------------------------------------------------
 # General archives / packaged artifacts
-# ------------------------------
+# ---------------------------------------------------------------------------
 *.zip
 *.tar
 *.tar.gz
@@ -112,16 +151,19 @@ site/
 *.7z
 *.gz
 
-# ------------------------------
-# Local environment files
-# ------------------------------
-.env
-.env.*
-!.env.example
-
-# ------------------------------
-# Generated documentation / reports
-# ------------------------------
+# ---------------------------------------------------------------------------
+# Generated documentation / coverage reports
+# ---------------------------------------------------------------------------
 coverage/
 htmlcov/
 reports/
+
+# ---------------------------------------------------------------------------
+# Project-specific note
+# ---------------------------------------------------------------------------
+# Do not ignore these project outputs globally:
+# - data/raw/
+# - data/processed/
+# - notebooks/
+# - figures/
+# They are thesis artifacts and should remain intentionally trackable.
