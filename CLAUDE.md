@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 `AGENTS.md` is the authoritative orientation document for assistants in this repo. Read it before making non-trivial changes — it covers project state, firmware variants, data contracts, and current locked modeling conclusions. The notes below complement it; they do not replace it.
 
-The README and `manual.md` describe the original Phase 0-1 manual workflow and are no longer the latest state. The current state is Phase 2.2 (LOOCV validation). The source of truth for the latest modeling conclusions is `thesis_notes/log.md` plus the processed CSVs in `data/processed/` and the notebooks.
+The README and `manual.md` describe the original Phase 0-1 manual workflow and are no longer the latest state. The current state is Phase 2 gap-fill after Phase 2.2 LOOCV validation. The source of truth for the latest modeling conclusions is `thesis_notes/log.md` plus the processed CSVs in `data/processed/` and the notebooks, especially `notebooks/05_gap_fill.ipynb`.
 
 ## How To Use This With An IDE Agent
 
@@ -74,10 +74,20 @@ Run a notebook headlessly (re-execute and overwrite outputs in place):
 
 ```bash
 ./.venv/bin/jupyter nbconvert --to notebook --execute \
-    notebooks/04_validation.ipynb --inplace --ExecutePreprocessor.timeout=180
+    notebooks/05_gap_fill.ipynb --inplace --ExecutePreprocessor.timeout=180
 ```
 
-Split a captured step-response serial log (only applies to logs from the archived `step_response_v1` firmware):
+Capture and split a GO-based automated step-response run (only when hardware is connected and the matching automated firmware is flashed):
+
+```bash
+python scripts/capture_serial.py <port> \
+    data/raw/serial_logs/<session>.log
+python scripts/split_log.py \
+    data/raw/serial_logs/<session>.log \
+    data/raw/step_responses_gapfill/
+```
+
+Split a captured original Phase 2.1 step-response serial log:
 
 ```bash
 python scripts/split_log.py \
@@ -85,7 +95,7 @@ python scripts/split_log.py \
     data/raw/step_responses/
 ```
 
-There is no test suite. There is no linter configured. "Build" means `pio run`; "validate analysis" means re-executing the relevant notebook.
+There is no test suite. There is no linter configured. "Build" means `pio run`; "validate analysis" means re-executing the relevant notebook and checking the generated processed CSVs/figures.
 
 ## Architecture
 
@@ -100,12 +110,13 @@ Physical setup: Arduino Uno R4 Minima drives an L298N H-bridge driving a 12 V ge
 
 ### Firmware variants
 
-There are two firmware behaviours, and they are not interchangeable:
+There are three firmware behaviours, and they are not interchangeable:
 
-- **Active**: `src/main.cpp` is *manual-mode* firmware. The user sends single-character commands (`f`/`r`/`s`/`z`/`?`) and PWM magnitudes (`0..255`) over serial. It emits continuous `t_ms,pwm_cmd,dir,enc_count,rpm` telemetry. `ENCODER_SIGN = -1` reflects the encoder phasing of the physical rig. This is what runs during manual sweeps and step-response sessions where the operator drives transitions by hand.
-- **Archived**: `firmware_archive/step_response_v1.cpp` is the automated 30-trial Phase 2.1 firmware that responds to a `GO` command and emits trial blocks delimited by `=== START <name> ===` / `=== END ===`. `scripts/split_log.py` and `scripts/capture_serial.py` only work with this protocol — do not run them against the active firmware.
+- **Active**: `src/main.cpp` is the Phase 2 gap-fill automated firmware, mirrored by `firmware_archive/step_response_v2.cpp`. It responds to `GO`, `STOP`, and `?`, prints a ready banner, and emits trial blocks delimited by `=== START <name> ===` / `=== END ===`. The sequence has 46 hands-off trials: 8 piggyback Phase 2.1 reruns, 20 new accel trials at PWM 180/220 across fwd/rev with 5 runs each, and 18 new decel trials from 240 to 100/180/220 across fwd/rev with 3 runs each.
+- **Archived manual**: `firmware_archive/manual_mode_v1.cpp` preserves the manual-mode baseline. The user sends single-character commands (`f`/`r`/`s`/`z`/`?`) and PWM magnitudes (`0..255`) over serial. It emits continuous `t_ms,pwm_cmd,dir,enc_count,rpm` telemetry. Do not use `scripts/capture_serial.py` with manual-mode firmware.
+- **Archived Phase 2.1 automation**: `firmware_archive/step_response_v1.cpp` is the automated 30-trial Phase 2.1 firmware that responds to `GO` and emits the same trial-block format used by `scripts/split_log.py`.
 
-If you need the automated step-response protocol, swap the active source for the archived file; do not duplicate it.
+If you need a different protocol, swap from the archived file intentionally and keep `src/main.cpp`, `AGENTS.md`, and this file aligned.
 
 ### Data contracts (raw CSVs)
 
@@ -113,17 +124,27 @@ These contracts matter because notebooks fail or silently mis-fit if they are vi
 
 - **Static sweep** (`data/raw/static_sweep_*.csv`): `pwm_cmd,direction,vmean_v,rpm,notes`. `pwm_cmd` is the *typed magnitude* and is always nonnegative; `direction` is `fwd` or `rev`; `rpm` carries its natural sign from telemetry.
 - **Step responses** (`data/raw/step_responses/*.csv`): `t_ms,pwm_cmd,dir,enc_count,rpm`. Here `pwm_cmd` is unsigned and `dir` carries sign, with `dir_sign = {"F": 1, "R": -1, "N": 0}`.
+- **Gap-fill step responses** (`data/raw/step_responses_gapfill/*.csv`): same schema and sign convention as Phase 2.1 step-response CSVs.
 
 Raw data is immutable. Do not add derived columns to raw CSVs. All computed outputs go in `data/processed/`. Figures go in `figures/` with numbered filenames.
 
-There is intentionally no `data/raw/_sealed/` held-out validation dataset — Phase 2.2 uses LOOCV across the existing 30 Phase 2.1 trials. Do not invent one.
+There is intentionally no `data/raw/_sealed/` held-out validation dataset. Phase 2.2 uses LOOCV across the existing 30 Phase 2.1 trials, and the gap-fill analysis uses within-condition LOOCV on the new 180/220 accel and 240-to-100/180/220 decel conditions. Do not invent a sealed dataset.
 
 ### Working model
 
 The locked cascade is `PWM command → static driver-voltage block → motor dynamic block → RPM` with separate fwd/rev parameters and separate accel/decel regions. Specific locked numbers (static gains, deadzone breakaway/dropout, FOPDT picks, LOOCV residuals) are documented in `AGENTS.md` § *Current Model Notes*. Before changing any of those conclusions, re-run or inspect the corresponding notebook and processed CSV — do not edit the documented numbers in isolation.
 
+Latest Phase 2 gap-fill conclusions:
+
+- Within-session reproducibility is strong after warm-up: gap-fill LOOCV excess is about `-0.05 rpm` for accel and `+0.45 rpm` for decel, with reverse `240->100` decel as the main outlier at about `+1.06 rpm`.
+- Session-to-session drift is real after the two-week idle: cold-start forward accel tau inflated roughly 30-40% for the first about 30 s, low-rpm decel through the deadzone is much slower than Phase 2.1 interpolation, and reverse high-PWM tau is persistently about 20% faster than Phase 2.1.
+- The tau landscape is now a broad bathtub, not a sharp V: accel tau is low across roughly PWM 180-220 and rises near PWM 160 and PWM 240.
+- Phase 3 needs a fresh in-session calibration block before closed-loop trials. Do not use Phase 2.1 parameters as ground truth for a later session.
+
 ### Notebook conventions
 
-Notebooks are numbered by phase: `01_static_map.ipynb` (Phase 1.1), `03_step_responses.ipynb` (Phase 2.1 FOPDT), `04_validation.ipynb` (Phase 2.2 LOOCV). When adding cells, do explicit schema checks before fitting or plotting, and keep cells runnable after a kernel restart (re-import `Path`, `glob`, `pandas`, `numpy` locally in debugging cells the user is likely to rerun in isolation).
+Notebooks are numbered by phase: `01_static_map.ipynb` (Phase 1.1), `03_step_responses.ipynb` (Phase 2.1 FOPDT), `04_validation.ipynb` (Phase 2.2 LOOCV), and `05_gap_fill.ipynb` (Phase 2 gap-fill, session drift, refined LOOCV). When adding cells, do explicit schema checks before fitting or plotting, and keep cells runnable after a kernel restart (re-import `Path`, `glob`, `pandas`, `numpy` locally in debugging cells the user is likely to rerun in isolation).
+
+In notebook 03, `rms_decel` is the documented 1500 ms post-step window `[3000, 4500]` ms. For apples-to-apples LOOCV comparison against the decel fit window, use `rms_total`.
 
 When an analysis result lands, the corresponding commit should bundle the notebook, the new processed CSV, the figures, and the `thesis_notes/log.md` entry that interprets them.

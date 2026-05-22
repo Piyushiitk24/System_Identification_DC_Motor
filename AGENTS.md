@@ -12,6 +12,8 @@ workflow. The current analysis state is later:
 - Phase 2.1 step-up and step-down FOPDT analysis is in
   `notebooks/03_step_responses.ipynb`.
 - Phase 2.2 LOOCV validation is in `notebooks/04_validation.ipynb`.
+- Phase 2 gap-fill, session-to-session drift analysis, and refined LOOCV
+  comparison are in `notebooks/05_gap_fill.ipynb`.
 - The running thesis narrative and conclusions live in `thesis_notes/log.md`.
 
 Treat `thesis_notes/log.md`, processed CSVs, and notebooks as the source of
@@ -43,22 +45,32 @@ replace the project constraints with generic agent behavior.
 
 ## Firmware
 
-Active firmware is `src/main.cpp`. It is manual-mode firmware:
+Active firmware is `src/main.cpp`. In this checkout it is the Phase 2 gap-fill
+automated step-response firmware, equivalent to
+`firmware_archive/step_response_v2.cpp`:
 
 - serial baud: `230400`
 - telemetry: `t_ms,pwm_cmd,dir,enc_count,rpm`
-- commands: `f`, `r`, `s`, `z`, `?`, and numeric `0..255`
+- commands: `GO`, `STOP`, and `?`
 - PWM output: D9 at 20 kHz using Renesas `PwmOut`
 - encoder sign is currently `ENCODER_SIGN = -1`
+- trial sequence: 46 hands-off trials, about 7.3-7.5 min total:
+  8 piggyback Phase 2.1 reruns, 20 new accel trials at PWM 180/220
+  across fwd/rev with 5 runs each, and 18 new decel trials from 240 to
+  100/180/220 across fwd/rev with 3 runs each
 
 Archived firmware is in `firmware_archive/`:
 
 - `manual_mode_v1.cpp` preserves the manual-mode baseline.
 - `step_response_v1.cpp` is the automated 30-trial Phase 2.1 firmware that
   responds to `GO` and emits trial blocks for `scripts/split_log.py`.
+- `step_response_v2.cpp` is the automated 46-trial Phase 2 gap-fill firmware
+  now mirrored in `src/main.cpp`.
 
-Do not assume `scripts/capture_serial.py` works with the active firmware. It is
-for the archived `step_response_v1` protocol.
+`scripts/capture_serial.py` is for GO-based automated firmware
+(`step_response_v1` or `step_response_v2`) and sends `GO` after startup. Do
+not use it against manual-mode firmware. `scripts/split_log.py` works for
+both v1 and v2 trial-block logs; choose the correct output directory.
 
 ## Commands
 
@@ -85,10 +97,18 @@ python3 -m venv .venv
 Execute a notebook:
 
 ```bash
-./.venv/bin/jupyter nbconvert --to notebook --execute notebooks/04_validation.ipynb --inplace --ExecutePreprocessor.timeout=180
+./.venv/bin/jupyter nbconvert --to notebook --execute notebooks/05_gap_fill.ipynb --inplace --ExecutePreprocessor.timeout=180
 ```
 
 Jupyter may need permission to bind a local kernel socket in this environment.
+
+Capture an automated GO-based step-response run, only when hardware is
+connected and the matching automated firmware is flashed:
+
+```bash
+python scripts/capture_serial.py <port> data/raw/serial_logs/<session>.log
+python scripts/split_log.py data/raw/serial_logs/<session>.log data/raw/step_responses_gapfill/
+```
 
 ## Data Contracts
 
@@ -105,7 +125,13 @@ Rules:
 - `rpm` keeps its natural sign.
 - Do not add derived columns to raw CSVs.
 
-Phase 2.1 step-response trial CSVs live in `data/raw/step_responses/` and use:
+Step-response trial CSVs live in:
+
+- `data/raw/step_responses/` for the original 30-trial Phase 2.1 session.
+- `data/raw/step_responses_gapfill/` for the 46-trial Phase 2 gap-fill
+  session.
+
+Both directories use:
 
 ```text
 t_ms,pwm_cmd,dir,enc_count,rpm
@@ -121,9 +147,20 @@ signed_pwm = pwm_cmd * dir_sign[dir]
 Processed outputs live in `data/processed/`. Keep processed and generated
 artifacts out of `data/raw/`.
 
+Current Phase 2 gap-fill processed outputs include:
+
+- `phase2gapfill_fopdt_accel_per_trial.csv`
+- `phase2gapfill_fopdt_accel_per_condition.csv`
+- `phase2gapfill_stepdown_per_trial.csv`
+- `phase2gapfill_stepdown_per_condition.csv`
+- `phase2gapfill_loocv_accel.csv`
+- `phase2gapfill_loocv_decel.csv`
+- `phase2gapfill_loocv_summary_combined.csv`
+
 There is currently no `data/raw/_sealed/` validation dataset. Do not create or
-populate it casually. Phase 2.2 uses LOOCV on the 30 Phase 2.1 trials instead
-of true held-out validation.
+populate it casually. Phase 2.2 uses LOOCV on the 30 Phase 2.1 trials, and
+the gap-fill analysis uses within-condition LOOCV on the new 180/220 accel
+and 240-to-100/180/220 decel conditions.
 
 ## Current Model Notes
 
@@ -145,6 +182,27 @@ Locked Phase 2.1/2.2 interpretation:
 - Phase 2.2 LOOCV found mean excess error of about `+1.06 rpm` for accel and
   `+0.10 rpm` for decel.
 
+Latest Phase 2 gap-fill interpretation:
+
+- Within-session reproducibility is strong when the motor is warm. Gap-fill
+  LOOCV excess is about `-0.05 rpm` for accel and `+0.45 rpm` for decel, with
+  the main outlier being reverse `240->100` decel at about `+1.06 rpm`.
+- Session-to-session drift after the two-week idle period is real and
+  structured. Cold-start forward accel tau inflated roughly 30-40% during the
+  first about 30 s, low-rpm decel through the deadzone is much slower than
+  Phase 2.1 interpolation, and reverse high-PWM tau is persistently about 20%
+  faster than Phase 2.1.
+- The cascade structure remains supported. `K_ss` stays highly linear in PWM
+  within each direction across PWM 160/180/200/220/240, while tau carries the
+  operating-region and session-history effects.
+- The old sharp "V-shape" tau description should be refined to a broad
+  bathtub: accel tau is low across roughly PWM 180-220 and rises near PWM 160
+  and PWM 240.
+- Phase 3 should not treat Phase 2.1 parameters as ground truth for a later
+  bench session. The Phase 3 protocol needs a fresh in-session calibration
+  block before closed-loop trials, then should use that same-session
+  calibration for simulator predictions.
+
 Before changing these conclusions, re-run or inspect the relevant notebook and
 the corresponding processed CSV.
 
@@ -159,6 +217,9 @@ When adding notebook cells:
 - If a notebook depends on prior cells, make that dependency clear. For quick
   debugging cells, import `Path`, `glob`, `pandas`, or `numpy` locally if the
   user is likely to run the cell after a kernel restart.
+- In notebook 03, `rms_decel` is the documented 1500 ms post-step window
+  `[3000, 4500]` ms. For apples-to-apples LOOCV comparison against the decel
+  fit window, use `rms_total`.
 
 ## Git Hygiene
 
