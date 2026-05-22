@@ -367,3 +367,59 @@ This is a thesis observation worth foregrounding in the validation chapter along
 ### Status
 
 **Phase 2.2: COMPLETE.** Validation methodology demonstrated, results saved, summary and appendix figures rendered. Cascade Model C is validated within its calibration grid via LOOCV with quantified excess (+1.06 rpm accel, +0.10 rpm decel). Ready to move to Phase 3 in next bench session.
+
+## 2026-05-22 — Phase 2 gap-fill bench session + analysis
+
+### Session
+- Firmware: `step_response_v2.cpp` (variant of v1 with 46-trial array; logic identical).
+- 46 trials in ~7.5 min hands-off: 8 piggyback + 20 new accel + 18 new decel.
+- Ambient T: 27.3°C start → 28.8°C end (AC on).
+- Gap since previous bench session: ~2 weeks (last bench 2026-05-06).
+
+### Files added
+- `firmware/step_response_v2.cpp`
+- `data/raw/step_responses_gapfill/*.csv` (46 trials)
+- `data/raw/serial_logs/2026-05-22_phase2_gapfill_session.log`
+- `data/raw/session_log.csv`
+- `data/processed/phase2gapfill_fopdt_accel_{per_trial, per_condition}.csv`
+- `data/processed/phase2gapfill_stepdown_{per_trial, per_condition}.csv`
+- `data/processed/phase2gapfill_loocv_{accel, decel}.csv`
+- `data/processed/phase2gapfill_loocv_summary_combined.csv` (10 P2.2 + 6 gap-fill)
+- `figures/14_phase2gapfill_piggyback_overlay.png` through `figures/19_loocv_phase22_vs_gapfill.png`
+- `notebooks/05_gap_fill.ipynb` (9 cells: setup, piggyback, P2.1 outlier audit, new accel, new decel, decel overlays, LOOCV new conditions, combined summary)
+
+### Findings (thesis-relevant)
+
+**1. Within-session reproducibility is excellent.**
+Warm-motor LOOCV excess ≤ 0.5 rpm for almost all conditions. Only outlier: decel rev 240→100 (+1.06 rpm excess, attributable to stick-slip through deadzone in reverse direction — short PWM-ON pulses during freewheel interact stochastically with brush contact pattern).
+
+**2. Session-to-session drift after 2-week idle is real and structured.**
+- *Cold-start accel:* fwd τ inflated 30–40% for first ~30 s of operation (e.g. piggyback trial 1, fwd 200 run1: τ=131 vs Phase 2.1 mean 95). Recovers as motor warms. Direct support for the Phase 2.2 thermal hypothesis.
+- *Persistent low-rpm decel:* τ at coast-through-deadzone targets (240→100, 240→180) is ~2x Phase 2.1's interpolated expectation, visually confirmed in trajectory overlays (`figures/18`). Friction at low rpm has shifted; lubricant settling during idle is the candidate mechanism.
+- *Persistent rev high-PWM τ deflation (~20%):* gap-fill rev 240 τ ≈ 114 ms vs Phase 2.1 144 ms. Not warm-up — stable across all rev high-PWM trials. Mechanism unclear.
+
+**3. Cascade structure further validated.**
+K_ss highly linear in PWM within direction (per-condition std ≤ 2 rpm across 5 runs). Static block separability holds across all 5 calibrated PWMs (160, 180, 200, 220, 240).
+
+**4. τ landscape refined.**
+Broad bathtub minimum at PWM 180–220 (τ ≈ 95–110 ms), sharp rise at edges (PWM=160: 192–200 ms; PWM=240: 144–152 ms). Earlier "V-shape" framing was too sharp; the bottom is flat across a 40-PWM-wide window.
+
+**5. Phase 2.2 hypothesis refined, not contradicted.**
+Phase 2.2's accel/decel asymmetry (+1.06 vs +0.10) was driven by cold-start stochasticity, NOT a steady-state property. With warm motor and n=5, gap-fill accel excess collapses to −0.05 rpm. Decel inherently sees a warm motor (decel begins after 3 s at PWM=240), so its low excess is consistent across both phases.
+
+### Documentation correction
+Previous handover (2026-05-07) claimed `rms_decel` window was undocumented. Verified in nb03: the window IS documented as `decel_mask = (t >= STEP_DOWN_START_MS) & (t <= STEP_DOWN_START_MS + 1500)`, i.e. t ∈ [3000, 4500] ms (150 samples, 1500 ms post-step). Not load-bearing; Phase 2.2 correctly used `rms_total` as the apples-to-apples floor against LOOCV `rmse_fit_window`.
+
+### Implications for Phase 3
+- Phase 2.1 calibration parameters MUST NOT be used as ground truth for Phase 3 trials (session drift too large for decel).
+- Phase 3 bench protocol must include a fresh in-session calibration block at the session start. Re-run the original 30 Phase 2.1 conditions, then proceed to closed-loop trials in the same session, then use that fresh calibration for Phase 3 simulator predictions.
+- Expected closed-loop tracking accuracy in steady operation: ~3–5 rpm RMSE (matches within-session reproducibility floor).
+- Cold-start may see transiently worse tracking for first ~30 s.
+- Reverse-direction stops through deadzone will have elevated stochasticity.
+
+### Open question (future work, not blocking thesis)
+Reverse-direction τ deflation at high PWM (~20% faster than Phase 2.1, stable across all gap-fill rev high-PWM trials) is not explained by warm-up. Falsifying any specific mechanism (lubricant migration, brush wear pattern reset, bearing seating) would require controlled idle-vs-immediate session pairs with thermistor instrumentation. Out of scope.
+
+Paste the entry into thesis_notes/log.md, commit, and confirm done.
+
+
