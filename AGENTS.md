@@ -17,6 +17,30 @@ workflow. The current analysis state is later:
 Treat `thesis_notes/log.md`, processed CSVs, and notebooks as the source of
 truth for the latest modeling state.
 
+## Agent Operating Rules
+
+This repo uses a compact Karpathy-inspired agent policy: think before editing,
+keep the solution simple, make surgical changes, and verify against a concrete
+goal. Merge these rules with the project-specific constraints below; do not
+replace the project constraints with generic agent behavior.
+
+- Start from evidence. Read the exact firmware, notebook, CSV, or thesis note
+  before changing it. If the task could mean firmware, analysis, documentation,
+  or hardware operation, state the assumption or ask before editing.
+- Keep changes minimal. Do not add speculative abstractions, new workflows,
+  convenience features, or alternate data layouts unless the user asked for
+  them. Prefer the smallest change that preserves the current analysis state.
+- Make every changed line traceable to the request. Match existing style, leave
+  unrelated cleanup alone, and do not rewrite old conclusions unless the
+  relevant notebook or processed CSV has been inspected or re-run.
+- Define success before running. For firmware, the check is normally `pio run`.
+  For analysis, re-execute the relevant notebook and inspect generated
+  processed outputs/figures. For documentation-only changes, check that
+  `AGENTS.md`, `CLAUDE.md`, and `thesis_notes/log.md` do not contradict each
+  other.
+- Respect hardware boundaries. Upload firmware, monitor serial, or depend on
+  live bench behavior only when the user says hardware is connected.
+
 ## Firmware
 
 Active firmware is `src/main.cpp`. It is manual-mode firmware:

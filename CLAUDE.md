@@ -8,6 +8,51 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 The README and `manual.md` describe the original Phase 0-1 manual workflow and are no longer the latest state. The current state is Phase 2.2 (LOOCV validation). The source of truth for the latest modeling conclusions is `thesis_notes/log.md` plus the processed CSVs in `data/processed/` and the notebooks.
 
+## How To Use This With An IDE Agent
+
+Open the IDE or agent from the repository root:
+
+```bash
+cd /Users/piyush/code/System_Identification_DC_Motor
+```
+
+Keep both root instruction files in scope:
+
+- `AGENTS.md` is the shared project policy for Codex-style agents.
+- `CLAUDE.md` is the Claude Code project memory and should stay consistent
+  with `AGENTS.md`.
+
+For Claude Code, keep this file at the repo root so it is loaded as project
+context. For other IDE assistants, add both `AGENTS.md` and `CLAUDE.md` as
+project rules or explicitly attach/read them at the start of a session. The
+useful pattern is not copying a generic template; it is keeping a short
+behavior policy next to exact project facts, commands, data contracts, and
+current modeling conclusions.
+
+## Agent Behavior Policy
+
+Use this Karpathy-inspired operating loop for non-trivial tasks:
+
+1. Think before editing. Read the relevant firmware, notebook, CSV, or thesis
+   note first. State assumptions when the request is ambiguous, especially when
+   it could affect live hardware, raw data, or locked modeling conclusions.
+2. Prefer the simplest working change. Do not add unrequested features,
+   alternate workflows, configurable layers, or new data schemas. This is a
+   measured system-identification project, so extra cleverness usually creates
+   traceability problems.
+3. Keep diffs surgical. Every changed line should map to the user's request.
+   Match the surrounding style, leave unrelated cleanup alone, and remove only
+   dead code or artifacts introduced by the current change.
+4. Verify against a concrete goal. Firmware changes normally need `pio run`.
+   Notebook changes need the relevant `nbconvert` execution and inspection of
+   generated outputs. Documentation changes need consistency across
+   `AGENTS.md`, `CLAUDE.md`, and `thesis_notes/log.md` when conclusions are
+   involved.
+
+Stop and ask before uploading firmware, opening a serial monitor as part of a
+bench run, inventing a held-out validation dataset, or changing locked model
+numbers without inspecting the corresponding notebook and processed CSV.
+
 ## Common Commands
 
 Firmware (PlatformIO, Arduino Uno R4 Minima):
