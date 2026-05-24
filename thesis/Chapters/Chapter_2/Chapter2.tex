@@ -1,0 +1,137 @@
+% Chapter 2 — Hardware Setup and Commissioning
+% Converted from thesis_notes/draft_ch2_hardware.md
+\chapter{Hardware Setup and Commissioning}
+\label{chap:hardware}
+\lhead{\emph{Hardware Setup and Commissioning}}
+
+\section{Overview}
+\label{sec:overview}
+
+The experimental plant is a brushed DC gearmotor driven by an L298N H-bridge under pulse-width-modulated (PWM) voltage control, with shaft velocity measured by a quadrature optical encoder. An Arduino Uno R4 Minima generates the PWM command, sets the H-bridge direction, decodes the encoder in hardware interrupts, and streams time-stamped telemetry to a host computer over USB serial. All identification data in this thesis were collected on this single rig; only the firmware behaviour changed between sessions (manual jog versus automated step sequencer, \sref{sec:firmware}).
+
+The signal path is a cascade of four physical stages, and the model identified in later chapters mirrors this same decomposition (\fref{fig:blockdiagram}). The directional voltage asymmetry that motivates the cascade model (\cref{chap:static}) originates in the L298N output stage, while the encoder closes the measurement path.
+
+\begin{figure}[t]
+  \centering
+  \resizebox{\textwidth}{!}{\input{Chapters/Chapter_2/figures/fig_blockdiagram}}
+  \caption{Signal flow and cascade decomposition of the rig. The PWM command passes through the static driver-voltage block (L298N) and the motor dynamic block to produce shaft speed; the 600\,PPR encoder returns the measured speed to the controller, which streams it to the host. The dashed box marks the two blocks identified in \cref{chap:static} and \cref{chap:dynamic}.}
+  \label{fig:blockdiagram}
+\end{figure}
+
+\section{Components}
+\label{sec:components}
+
+The rig comprises the components listed in \tref{tab:components}. Static-characterisation instrumentation (\cref{chap:static}) additionally used a digital multimeter (DMM) for mean motor voltage and a two-channel oscilloscope with a math channel for the differential motor voltage; these form part of the measurement chain.
+
+\begin{table}[t]
+  \centering
+  \caption{Components of the experimental rig.}
+  \label{tab:components}
+  \footnotesize
+  \begin{tabular}{@{}p{2.4cm}p{3.6cm}p{6.4cm}@{}}
+    \toprule
+    Subsystem & Part & Key specification \\
+    \midrule
+    Controller & Arduino Uno R4 Minima & Renesas RA4M1 (Arm Cortex-M4, 48\,MHz); PlatformIO board id \texttt{uno\_r4\_minima} \\
+    Motor driver & L298N dual H-bridge (one channel used) & Up to 2\,A/channel; bipolar-transistor output stage with non-negligible saturation drop \\
+    Motor & Orange--Johnson 12\,V geared DC motor & 60:1 gearbox, ${\approx}300$\,rpm rated output at 12\,V \\
+    Encoder & Orange 3806-OPTI-600-AB-OC & 600\,PPR, 2-channel (A/B) quadrature, open-collector output, on the \textbf{output} shaft \\
+    Motor supply & Bench PSU & 12.0\,V set-point, 1.5\,A current limit \\
+    Logic supply & Arduino 5\,V rail & feeds encoder $V_{\mathrm{CC}}$ and L298N logic 5\,V \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\section{Wiring and pin mapping}
+\label{sec:wiring}
+
+The Arduino-to-peripheral wiring is fixed across all sessions (\tref{tab:pinmap}). Only one L298N channel is used: OUT1/OUT2 drive the motor, ENA/IN1/IN2 are the control inputs, and ENB/IN3/IN4/OUT3/OUT4 are left unconnected. Two jumper changes on the L298N board are required and were verified before every session:
+\begin{itemize}
+  \item \textbf{ENA jumper removed}, so the Arduino D9 PWM signal---rather than a fixed on-board pull-up---controls channel-A speed.
+  \item \textbf{5\,V regulator (5V-EN) jumper removed}, because the Arduino 5\,V rail supplies the L298N logic; leaving it in would back-feed the on-board regulator.
+\end{itemize}
+
+The encoder is open-collector, so each channel uses a 4.7\,k$\Omega$ pull-up to the 5\,V rail (placed between the signal line and 5\,V, not in series). All grounds---Arduino, encoder, L298N, and the PSU negative---meet at one star node, and the high-current motor path is kept short and direct rather than routed through thin breadboard rails, to avoid ground-bounce on the shared logic reference.
+
+\begin{table}[t]
+  \centering
+  \caption{Arduino pin map.}
+  \label{tab:pinmap}
+  \small
+  \begin{tabular}{@{}llp{6cm}@{}}
+    \toprule
+    Arduino pin & Net & Function \\
+    \midrule
+    D2  & Encoder A & Quadrature input (CHANGE interrupt) \\
+    D3  & Encoder B & Quadrature input (CHANGE interrupt) \\
+    D4  & L298N IN1 & Direction bit 1 \\
+    D5  & L298N IN2 & Direction bit 2 \\
+    D9  & L298N ENA & PWM speed command \\
+    5V  & Encoder $V_{\mathrm{CC}}$, L298N logic 5\,V & Logic supply \\
+    GND & Encoder GND, L298N GND, PSU $-$ & Common (star) ground \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\section{PWM generation}
+\label{sec:pwm}
+
+Speed is commanded as an 8-bit duty value (0--255) on D9 at a fixed \textbf{20\,kHz} carrier. The Uno R4 PlatformIO core does not expose a global \texttt{analogWriteFrequency()}, so the carrier is configured directly through the Renesas \texttt{PwmOut} API at 20\,kHz, with the duty applied via \texttt{pulse\_perc()}. Twenty kilohertz is chosen deliberately: it sits at the top of the audible band so the motor does not whine, and---more importantly for this study---it makes the H-bridge output a clean high-frequency square wave whose \textbf{time-average} is a stable, well-defined motor voltage. That averaging is what allows the DMM and oscilloscope math channel to read a repeatable $V_{\mathrm{motor}}$ during the static sweeps of \cref{chap:static}; at a low carrier the average reading wanders and the static map becomes unmeasurable.
+
+\section{Encoder interface and velocity estimation}
+\label{sec:encoder}
+
+The encoder produces 600 pulses per revolution per channel. Both channels are decoded in full quadrature: A and B each trigger an interrupt on every edge (\texttt{CHANGE}), and a 16-entry state-transition lookup table converts each (previous, current) two-bit state pair into a step of $-1$, $0$, or $+1$. Four edges per pulse period yield \textbf{2400 counts per output-shaft revolution}, i.e.\ an angular resolution of $360^\circ/2400 = \mathbf{0.15^\circ}$ per count at the output shaft.
+
+Velocity is not measured directly; it is estimated by finite difference of the accumulated count over the fixed 10\,ms telemetry interval,
+\begin{equation}
+  \mathrm{RPM} = \frac{\Delta\mathrm{count}\times 60\times 10^{6}}{2400\times \Delta t_{\mu\mathrm{s}}},
+  \label{eq:rpm}
+\end{equation}
+evaluated once per sample. A single-count change over a 10\,ms window therefore corresponds to a velocity quantisation of $60\times 10^{6}/(2400\times 10^{4}) = 2.5$\,rpm/count, which sets the noise floor of the RPM signal and is the reason the dynamic-fitting code (\cref{chap:dynamic}) treats sub-${\approx}2$\,rpm excursions as quantisation rather than motion. The encoder ISR is short and non-blocking; count reads in the main loop are taken inside a brief interrupt-disabled critical section to avoid tearing the 32-bit counter.
+
+\section{Direction and sign conventions}
+\label{sec:conventions}
+
+Direction is set by the IN1/IN2 pair: forward drives IN1 high / IN2 low, reverse drives IN1 low / IN2 high, and IN1 low / IN2 low coasts. The convention adopted throughout the thesis is \textbf{forward $\to$ positive RPM, reverse $\to$ negative RPM}. Each telemetry row carries the direction explicitly as a character---\texttt{F}, \texttt{R}, or \texttt{N} (neutral/coast)---so that the unsigned PWM magnitude and the signed velocity can always be reconstructed as $\mathrm{signed} = \mathrm{pwm}\times s$, with $s = +1, -1, 0$ for \texttt{F}, \texttt{R}, \texttt{N} respectively.
+
+\section{Firmware architecture}
+\label{sec:firmware}
+
+Two firmware behaviours were used, sharing identical pin definitions, encoder decoding, PWM setup, and telemetry format, and differing only in how transitions are commanded:
+\begin{itemize}
+  \item \textbf{Manual-mode firmware} accepts single-character serial commands (set forward / reverse / stop, zero the counter, print help) and an integer PWM magnitude, and streams telemetry continuously. It was used for the operator-driven static sweeps and deadzone ramps of \cref{chap:static}.
+  \item \textbf{Automated step-sequencer firmware} (a distinct trial array for the Phase~2.1 and gap-fill sessions) executes a pre-programmed array of step trials hands-off on a single \texttt{GO} command, emitting each trial as a delimited block (\texttt{=== START <name> ===} \ldots\ \texttt{=== END ===}). This removed operator timing variability from the dynamic step-response data of \cref{chap:dynamic}.
+\end{itemize}
+
+All telemetry is emitted at \textbf{230400 baud} as comma-separated rows \texttt{t\_ms, pwm\_cmd, dir, enc\_count, rpm} at a 10\,ms cadence. A host-side capture script logs the stream, and a splitter script cuts the delimited blocks into per-trial CSV files; raw CSVs are treated as immutable and all derived quantities are written separately.
+
+\section{Commissioning and acceptance (Phase 0)}
+\label{sec:commissioning}
+
+Before any identification data were trusted, the rig passed an acceptance gate confirming a clean firmware build, the 12.0\,V / 1.5\,A supply setting, and the 20\,kHz PWM command. The substantive commissioning finding concerned the \textbf{encoder sign}. A single-operating-point check was run at PWM~=~150 in both directions, with oscilloscope CH1 on OUT1, CH2 on OUT2, and a math channel computing CH1~$-$~CH2 as the differential motor voltage (\tref{tab:scopecheck}).
+
+\begin{table}[t]
+  \centering
+  \caption{Phase~0 single-point scope check at PWM~=~150.}
+  \label{tab:scopecheck}
+  \begin{tabular}{@{}lccc@{}}
+    \toprule
+    Command & Math (CH1$-$CH2) mean & Serial RPM & PSU current \\
+    \midrule
+    Forward & $+1.7$ to $+2.1$\,V & $-58$ to $-59$\,rpm & 0.22\,A \\
+    Reverse & $-2.5$ to $-3.0$\,V & $+56$ to $+61$\,rpm & 0.21\,A \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+The motor-voltage polarity was internally consistent---a forward command produced a positive differential voltage and a reverse command a negative one---but the \textbf{reported RPM sign was inverted relative to the command}: forward drive read negative, reverse read positive. The diagnosis was that the encoder A/B phasing was reversed with respect to the chosen command convention, not a wiring or polarity fault in the power path. The fix was a one-line firmware change setting the encoder decode sign to $-1$ (\texttt{ENCODER\_SIGN = -1}), after which the build was rebuilt successfully and the PWM~=~150 gate was repeated to confirm forward $\to$ positive RPM and reverse $\to$ negative RPM. This sign correction is baked into every firmware variant used for the data in this thesis, and it establishes the directional convention used uniformly from \cref{chap:static} onward.
+
+A separate within-session repeatability spot-check at PWM~=~$\pm 255$ (morning versus evening of the same day) confirmed the measurement chain was stable: the motor-side velocity reproduced to within ${\approx}1\,\%$, while the driver-side motor voltage and PSU current drifted by a few percent---an early, direct indication that what little instability the rig exhibits lives in the L298N (driver) stage rather than the motor, foreshadowing the cascade decomposition developed in \cref{chap:static}.
+
+\section{Summary}
+\label{sec:hw-summary}
+
+The plant is a 12\,V, 60:1 DC gearmotor driven by one channel of an L298N at a 20\,kHz, 8-bit PWM command, with direction set by two logic lines and velocity measured by a 600\,PPR quadrature encoder decoded to 2400 counts/rev ($0.15^\circ$/count) on the output shaft. An Arduino Uno R4 Minima performs PWM generation, direction control, interrupt-driven encoder decoding, and 10\,ms telemetry at 230400 baud; velocity is a finite-difference estimate with a 2.5\,rpm quantisation floor. Commissioning fixed an inverted encoder sign and established the forward-positive / reverse-negative convention, and an early repeatability check localised the rig's only measurable drift to the driver stage. This hardware is the fixed substrate for the static characterisation (\cref{chap:static}), dynamic characterisation (\cref{chap:dynamic}), and validation (\cref{chap:validation}) that follow.
+
+\chaptersources{\texttt{PIN\_CONFIGURATION.md} (pin map, jumpers, pull-ups, grounding, direction table) \textperiodcentered{} \texttt{firmware\_archive/step\_response\_v2.cpp} and \texttt{manual\_mode\_v1.cpp} (encoder decode, 2400 cnt/rev, RPM formula, 20\,kHz PwmOut, telemetry/baud) \textperiodcentered{} \texttt{thesis\_notes/log.md} 2026-05-04 / 2026-05-06 (Phase~0 acceptance, scope check, encoder-sign fix, $\pm 255$ spot-check) \textperiodcentered{} \texttt{data/metadata/2026-05-07\_phase21\_session.md} (PSU set-point/limit) \textperiodcentered{} datasheets (motor, encoder) \textperiodcentered{} status-doc \S2.}

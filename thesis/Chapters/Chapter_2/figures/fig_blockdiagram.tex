@@ -1,0 +1,41 @@
+% Chapter 2 (§2.1) signal-flow / cascade block diagram.
+% Package-independent: needs only tikz + libraries
+%   positioning, arrows.meta, fit, backgrounds  (all loaded in preamble.tex).
+% Usage in a chapter (it is wider than \textwidth, so scale it):
+%   \begin{figure}\centering\resizebox{\textwidth}{!}{\input{figures/fig_blockdiagram}}\caption{...}\label{fig:blockdiagram}\end{figure}
+\begin{tikzpicture}[
+  font=\small,
+  >={Latex[length=2mm]},
+  block/.style={draw, rounded corners=2pt, minimum height=1.15cm, minimum width=2.35cm,
+                align=center, inner sep=3pt, fill=white},
+  io/.style={draw, rounded corners=10pt, minimum height=1.15cm, minimum width=1.55cm,
+             align=center, inner sep=3pt, fill=black!4},
+  al/.style={font=\scriptsize, align=center},
+  node distance=12mm and 16mm
+]
+  \node[io]                          (host)  {Host\\PC};
+  \node[block, right=16mm of host]   (mcu)   {Arduino Uno\\R4 Minima};
+  \node[block, right=28mm of mcu]    (drv)   {L298N H-bridge\\{\scriptsize\itshape static driver block}};
+  \node[block, right=18mm of drv]    (mot)   {DC gearmotor\\{\scriptsize\itshape motor dynamic block}};
+  \node[io, right=16mm of mot]       (shaft) {Output\\shaft};
+  \node[block, below=18mm of shaft]  (enc)   {600\,PPR encoder\\{\scriptsize 2400 cnt/rev}};
+
+  % forward signal path
+  \draw[->] (host) -- node[al, above]{USB} (mcu);
+  \draw[->] (mcu)  -- node[al, above]{PWM (D9)\\dir (D4/D5)} (drv);
+  \draw[->] (drv)  -- node[al, above]{$V_{\mathrm{motor}}$} (mot);
+  \draw[->] (mot)  -- (shaft);
+
+  % feedback path
+  \draw[->] (shaft) -- (enc);
+  \draw[->] (enc)  -| node[al, pos=0.25, above]{A/B (D2/D3)} (mcu);
+
+  % telemetry return
+  \draw[->] (mcu)  to[bend left=22] node[al, below]{telemetry (10\,ms)} (host);
+
+  % cascade-model highlight
+  \begin{scope}[on background layer]
+    \node[draw, dashed, rounded corners, fit=(drv)(mot), inner sep=11pt,
+          label={[al]above:identified cascade model}] {};
+  \end{scope}
+\end{tikzpicture}

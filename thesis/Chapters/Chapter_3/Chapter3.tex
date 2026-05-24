@@ -1,0 +1,171 @@
+% Chapter 3 — Static Characterization
+% Converted from thesis_notes/draft_ch3_static.md
+\chapter{Static Characterization}
+\label{chap:static}
+\lhead{\emph{Static Characterization}}
+
+\section{Objective}
+\label{sec:static-obj}
+
+This chapter identifies the \textbf{steady-state} behaviour of the rig: the mapping from PWM command to settled output speed, with the motor allowed to reach equilibrium at each operating point. The aim is not merely to tabulate that map but to \textbf{decompose} it into a driver stage (PWM\,$\to$\,motor voltage) and a motor stage (motor voltage\,$\to$\,speed), and to show that the plant's pronounced forward/reverse asymmetry lives almost entirely in the driver. That decomposition is the empirical foundation for the cascade model used in the rest of the thesis, and it tells us which block must carry the asymmetry and the deadzone, and which may be treated as direction-symmetric.
+
+\section{Method}
+\label{sec:static-method}
+
+Two manually operated procedures were used, both on the manual-mode firmware (\sref{sec:firmware}).
+
+\textbf{Static sweep (Phase~1.1).} PWM magnitude was stepped from 10 to 255 in each direction. At every point the motor was allowed to settle, and three quantities were recorded: the commanded PWM, the steady serial RPM, and the \textbf{mean motor voltage} $V_{\mathrm{motor}}$. The latter was read as the time-average of the differential H-bridge output---feasible only because the 20\,kHz carrier produces a stable average (\sref{sec:pwm})---using a DMM and an oscilloscope math channel (CH1~$-$~CH2). Both directions were stored in one combined file with a \texttt{direction} column: 52 rows (26 forward, 26 reverse), PWM 10--255.
+
+\textbf{Deadzone ramp (Phase~1.2).} Because a coarse staircase cannot resolve the breakaway threshold cleanly (\sref{sec:deadzone}), the deadzone was probed separately with multiple slow manual ramps in each direction, recording the PWM at which the shaft first moved from rest (\textbf{breakaway}) and the PWM at which a moving shaft stopped (\textbf{dropout}), together with the corresponding $V_{\mathrm{motor}}$, RPM, and supply current.
+
+Raw measurements were kept immutable; all gains and ratios reported below are obtained by least squares from the sweep data.
+
+\section{The static input--output map}
+\label{sec:static-map}
+
+\fref{fig:pwm_rpm} plots commanded PWM against settled RPM for both directions. Three features are immediate: (i) a wide central \textbf{deadzone} in which no PWM produces motion; (ii) an approximately linear region above breakaway extending to full scale; and (iii) a \textbf{direction asymmetry} in which reverse runs slightly faster than forward at equal PWM magnitude. Taken at face value this is the plant's static characteristic, but the PWM\,$\to$\,RPM map alone conflates two physically distinct effects---driver voltage delivery and motor electromechanical gain---which the next two sections separate.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.82\textwidth]{02_pwm_vs_rpm}
+  \caption{Static map: PWM command versus settled RPM, forward and reverse. A wide deadzone separates the two branches; reverse runs slightly faster at equal PWM magnitude.}
+  \label{fig:pwm_rpm}
+\end{figure}
+
+\section{Driver block: PWM to motor voltage}
+\label{sec:driver}
+
+\fref{fig:pwm_vmean} plots PWM against $V_{\mathrm{motor}}$. The L298N~\citep{st_l298} does not deliver the full supply: even at 100\,\% duty (PWM~=~255), only \textbf{8.71\,V} (forward) and \textbf{9.35\,V} (reverse) of the 12.0\,V supply reach the motor---a droop of roughly \textbf{27\,\%} and \textbf{22\,\%} respectively, attributable to the saturation voltage of the bipolar output transistors. More importantly, the two directions are \textbf{not} symmetric: reverse delivers more motor voltage than forward at every PWM, and the disparity grows sharply toward the low-PWM edge (\tref{tab:driverV}).
+
+\begin{table}[t]
+  \centering
+  \caption{Driver-block voltage delivery and forward/reverse ratio at representative PWM (from the static sweep).}
+  \label{tab:driverV}
+  \begin{tabular}{@{}rrrr@{}}
+    \toprule
+    PWM & $V_{\mathrm{motor}}$ fwd (V) & $V_{\mathrm{motor}}$ rev (V) & $|V_{\mathrm{rev}}|/V_{\mathrm{fwd}}$ \\
+    \midrule
+    130 & 0.93 & $-2.05$ & \textbf{2.22} \\
+    160 & 2.20 & $-3.48$ & 1.58 \\
+    200 & 4.85 & $-5.79$ & 1.19 \\
+    240 & 8.41 & $-8.93$ & 1.06 \\
+    255 & 8.71 & $-9.35$ & 1.07 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.82\textwidth]{01_pwm_vs_vmean}
+  \caption{Driver-block characteristic: PWM command versus delivered mean motor voltage $V_{\mathrm{motor}}$. Reverse delivers more voltage than forward at every PWM, the gap widening toward the deadzone edge.}
+  \label{fig:pwm_vmean}
+\end{figure}
+
+The voltage asymmetry is therefore ${\approx}6\,\%$ at the top of the range but exceeds \textbf{$2\times$} at the lowest moving point. Physically, the forward and reverse current paths traverse different transistor pairs in the H-bridge, whose saturation drops differ; the effect is largest where the delivered voltage is smallest.
+
+\section{Motor block: motor voltage to RPM}
+\label{sec:motor}
+
+When speed is plotted against the \emph{delivered} motor voltage rather than PWM (\fref{fig:vmean_rpm}), the picture simplifies dramatically. Above the deadzone the relationship is linear through the origin, $\mathrm{RPM} = K\cdot V_{\mathrm{motor}}$, and a least-squares fit through the origin on the moving points gives
+\begin{equation}
+  K_{\mathrm{fwd}} = 26.94~\mathrm{rpm/V}, \qquad K_{\mathrm{rev}} = 24.52~\mathrm{rpm/V}.
+  \label{eq:Kgains}
+\end{equation}
+The reverse motor gain is only \textbf{9.0\,\% lower} than forward---i.e.\ the motor itself is close to direction-symmetric, consistent with a nearly electromagnetically symmetric DC machine. The small residual difference, with reverse slightly \emph{lower}, partially offsets the higher reverse voltage of \sref{sec:driver} when the two blocks are composed.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.82\textwidth]{03_vmean_vs_rpm}
+  \caption{Motor-block characteristic: settled RPM versus delivered $V_{\mathrm{motor}}$, with through-origin gains $K_{\mathrm{fwd}}=26.94$ and $K_{\mathrm{rev}}=24.52$~rpm/V. The two directions nearly coincide.}
+  \label{fig:vmean_rpm}
+\end{figure}
+
+\section{Attribution of the asymmetry}
+\label{sec:attribution}
+
+Composing the blocks resolves the apparent tension in the raw map. Reverse receives substantially more voltage per unit PWM (driver asymmetry, large), but converts it at a slightly lower gain (motor asymmetry, ${\approx}9\,\%$, opposite sign); the net forward/reverse speed difference is therefore much smaller than the voltage difference. This is exactly what \fref{fig:asymmetry} shows: the voltage ratio falls from 2.22 to ${\approx}1.06$ across the range, while the RPM ratio stays close to unity (${\approx}1.35$ at the low edge, ${\approx}1.01$--$1.03$ at high PWM); see \tref{tab:ratios}.
+
+\begin{table}[t]
+  \centering
+  \caption{The asymmetry is large in voltage but small in speed: it originates in the driver, not the motor.}
+  \label{tab:ratios}
+  \begin{tabular}{@{}rrr@{}}
+    \toprule
+    PWM & $|V_{\mathrm{rev}}|/V_{\mathrm{fwd}}$ & $|\mathrm{RPM}_{\mathrm{rev}}|/\mathrm{RPM}_{\mathrm{fwd}}$ \\
+    \midrule
+    130 & 2.22 & 1.35 \\
+    200 & 1.19 & 1.03 \\
+    240 & 1.06 & 1.01 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.82\textwidth]{04_asymmetry_ratio}
+  \caption{Forward/reverse asymmetry ratio versus PWM: large in delivered voltage ($|V_{\mathrm{rev}}|/V_{\mathrm{fwd}}$) but close to unity in speed ($|\mathrm{RPM}_{\mathrm{rev}}|/\mathrm{RPM}_{\mathrm{fwd}}$).}
+  \label{fig:asymmetry}
+\end{figure}
+
+\textbf{Conclusion.} The plant's directional asymmetry is driver-dominated. The motor (voltage\,$\to$\,speed) block may be modelled as direction-symmetric to within ${\approx}9\,\%$, while a \textbf{direction-specific static driver block} must carry the voltage asymmetry. This is the empirical justification for the cascade decomposition PWM\,$\to$\,static driver-voltage block\,$\to$\,motor dynamic block\,$\to$\,RPM developed in the following chapters.
+
+\section{Deadzone and hysteresis}
+\label{sec:deadzone}
+
+The deadzone is not a single threshold but a \textbf{hysteresis band}: the PWM needed to start the shaft from rest (breakaway) is well above the PWM at which a moving shaft stops (dropout), as \tref{tab:deadzone} shows.
+
+\begin{table}[t]
+  \centering
+  \caption{Deadzone thresholds (Phase~1.2). At dropout, $V_{\mathrm{motor}} \approx -0.13$~V and RPM~=~0.}
+  \label{tab:deadzone}
+  \small
+  \begin{tabular}{@{}lrrrl@{}}
+    \toprule
+    Direction & Breakaway PWM & Dropout PWM & Band & $V_{\mathrm{motor}}$ / RPM at breakaway \\
+    \midrule
+    Forward & 154 & 114 & 40 & ${\approx}{+}2.30$\,V / ${\approx}{+}55$\,rpm \\
+    Reverse & 144 & 112 & 32 & ${\approx}{-}2.30$\,V / ${\approx}{-}55$\,rpm \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+The coarse staircase of the Phase~1.1 sweep first suggested breakaway near PWM~=~130 in both directions, but this is misleading: the staircase steps deliver enough torque to keep an already-moving shaft turning above the dropout level, and the apparent 130 reflects a single stochastic breakaway rather than the typical one. The dedicated ramps show the true breakaway is higher (154 forward, 144 reverse) and is itself \textbf{stochastic} run-to-run, consistent with static-friction (stiction) onset~\citep{armstrong1994}. The wider forward band (40 vs 32 PWM) mirrors the larger forward breakaway.
+
+The same hysteresis appears in \emph{steady-state speed} near the deadzone edge: at PWM~=~160 the settled speed depends on the approach direction, reaching ${\approx}73.8$\,rpm (forward) and ${\approx}85.7$\,rpm (reverse) when descending from a higher speed but only ${\approx}52.1$ and ${\approx}69.6$\,rpm when rising from rest---a gap of ${\approx}22$\,rpm (forward) and ${\approx}16$\,rpm (reverse). These four steady-state values are the acceleration $\Kss$ and deceleration $\yfinal$ at PWM~=~160 reported in \cref{chap:dynamic}; they are noted here because the effect is a static-friction phenomenon and confirms that the static block must be \textbf{hysteretic}, not a single-valued curve. A Coulomb/Stribeck friction extension is the natural refinement (future work).
+
+\section{Reproducibility and thermal validity}
+\label{sec:static-repro}
+
+The static map rests on a single sweep, validated by two independent checks rather than by full repeat sweeps. No \texttt{static\_sweep\_run02} or \texttt{run03} were collected; the reproducibility argument rests on this single sweep, the two-point spot-check below, and the implicit cross-validation provided by the Phase~2.1 step-response steady-state endpoints. First, a two-point spot-check at PWM~=~$\pm 255$, repeated morning and evening of the same day, isolated where any drift occurs (\tref{tab:drift}).
+
+\begin{table}[t]
+  \centering
+  \caption{Morning\,$\to$\,evening drift at full duty (PWM~=~$\pm 255$).}
+  \label{tab:drift}
+  \begin{tabular}{@{}lrrr@{}}
+    \toprule
+    Direction & $\Delta V_{\mathrm{motor}}$ & $\Delta$RPM & $\Delta$PSU current \\
+    \midrule
+    Forward & $-3.8\,\%$ & $-0.6\,\%$ & $-4.5\,\%$ \\
+    Reverse & $+1.9\,\%$ & $+0.8\,\%$ & $-8.7\,\%$ \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+The motor (voltage\,$\to$\,speed) reproduces to within ${\approx}1\,\%$, while the driver-side motor voltage drifts a few percent and the supply current 5--9\,\%, consistent with \textbf{L298N junction thermal drift} after extended operation. Second, the steady-state speeds reached at the end of the Phase~2.1 step-up trials (\cref{chap:dynamic}) provide eighteen further implicit checks of the above-deadzone region; in the linear regime (PWM~$\ge$~200) they agree with the sweep within these thermal-drift bounds, and the residual forward-vs-reverse pattern of the disagreement matches the spot-check pattern.
+
+Two points follow. The drift is itself \textbf{evidence for the cascade}: the instability is confined to the driver block, while the motor block is stable---the same separation found in the asymmetry analysis. And static-block parameters are strictly valid only at the session's thermal state; this caveat is carried forward to any later-session use and is one reason any future closed-loop work will require a fresh in-session calibration rather than reusing these numbers.
+
+\section{Static block model and summary}
+\label{sec:static-summary}
+
+The identified static block of the cascade comprises three direction-specific elements:
+\begin{enumerate}
+  \item a \textbf{hysteretic deadzone}---breakaway 154/144 PWM, dropout 114/112 PWM (fwd/rev);
+  \item a \textbf{driver voltage map} PWM\,$\to$\,$V_{\mathrm{motor}}$ that is asymmetric (reverse higher, from ${\approx}6\,\%$ at full scale to ${>}2\times$ near the edge) and droops ${\approx}22$--$27\,\%$ below supply at full duty; and
+  \item a near-symmetric \textbf{motor gain} $\mathrm{RPM} = K\cdot V_{\mathrm{motor}}$, with $K_{\mathrm{fwd}} = 26.94$ and $K_{\mathrm{rev}} = 24.52$~rpm/V (reverse 9\,\% lower).
+\end{enumerate}
+
+The central result is structural: the large directional asymmetry and the only measurable session drift both localise to the driver, while the motor block is stable and near-symmetric. The plant is therefore well described as a direction-specific static driver block followed by a direction-symmetric motor block---the static half of the cascade. What this chapter does \textbf{not} capture is how the motor moves \emph{between} operating points; that transient behaviour, and its dependence on operating point and on the direction of the transition, is the subject of \cref{chap:dynamic}.
+
+\chaptersources{\texttt{data/raw/static\_sweep\_20260506\_run1.csv} (sweep, $K$ fits, V/RPM ratios, full-duty droop) \textperiodcentered{} \texttt{data/raw/deadzone\_manual\_run01.csv} (breakaway/dropout, V/RPM at threshold) \textperiodcentered{} \texttt{data/raw/spot\_check\_max\_pwm\_2026-05-06\_evening.csv} (thermal drift) \textperiodcentered{} \texttt{notebooks/01\_static\_map.ipynb} (figures 01--04, gain computation) \textperiodcentered{} status-doc \S4.1 (SS hysteresis at PWM~160, cross-val) \textperiodcentered{} \texttt{thesis\_notes/log.md} 2026-05-06/07 (Phase 1.1/1.2 interpretation).}

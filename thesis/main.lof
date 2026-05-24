@@ -1,0 +1,21 @@
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {2.1}{\ignorespaces Signal flow and cascade decomposition of the rig. The PWM command passes through the static driver-voltage block (L298N) and the motor dynamic block to produce shaft speed; the 600\,PPR encoder returns the measured speed to the controller, which streams it to the host. The dashed box marks the two blocks identified in Chapter~\ref {chap:static} and Chapter~\ref {chap:dynamic}.}}{8}{figure.caption.25}%
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {3.1}{\ignorespaces Static map: PWM command versus settled RPM, forward and reverse. A wide deadzone separates the two branches; reverse runs slightly faster at equal PWM magnitude.}}{17}{figure.caption.42}%
+\contentsline {figure}{\numberline {3.2}{\ignorespaces Driver-block characteristic: PWM command versus delivered mean motor voltage $V_{\mathrm {motor}}$. Reverse delivers more voltage than forward at every PWM, the gap widening toward the deadzone edge.}}{18}{figure.caption.45}%
+\contentsline {figure}{\numberline {3.3}{\ignorespaces Motor-block characteristic: settled RPM versus delivered $V_{\mathrm {motor}}$, with through-origin gains $K_{\mathrm {fwd}}=26.94$ and $K_{\mathrm {rev}}=24.52$~rpm/V. The two directions nearly coincide.}}{19}{figure.caption.48}%
+\contentsline {figure}{\numberline {3.4}{\ignorespaces Forward/reverse asymmetry ratio versus PWM: large in delivered voltage ($|V_{\mathrm {rev}}|/V_{\mathrm {fwd}}$) but close to unity in speed ($|\mathrm {RPM}_{\mathrm {rev}}|/\mathrm {RPM}_{\mathrm {fwd}}$).}}{20}{figure.caption.51}%
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {4.1}{\ignorespaces Acceleration time constant $\tau $ and (effective) dead time $T_{\mathrm {d}}$ versus PWM, forward and reverse (Phase~2.1, mean $\pm $ std). $\tau $ rises at both ends of the operating range.}}{25}{figure.caption.67}%
+\contentsline {figure}{\numberline {4.2}{\ignorespaces Acceleration $\tau $ and $|K_{\mathrm {ss}}|$ versus PWM, combining Phase~2.1 (160/200/240) and gap-fill (180/220): the broad bathtub minimum spans PWM 180--220, while $|K_{\mathrm {ss}}|$ stays linear in PWM.}}{26}{figure.caption.68}%
+\contentsline {figure}{\numberline {4.3}{\ignorespaces Curve-fit FOPDT rises with residual panels for the six Phase~2.1 acceleration conditions. Residuals are random at PWM~=~200 but structured at PWM~=~160 (friction onset) and PWM~=~240 (smooth onset), confirming effective-FOPDT behaviour at the extremes.}}{27}{figure.caption.69}%
+\contentsline {figure}{\numberline {4.4}{\ignorespaces Deceleration $\tau $ and $|y_{\mathrm {final}}|$ versus target PWM (from PWM~=~240), Phase~2.1 (targets 0, 160) plus gap-fill (100, 180, 220). $\tau $ peaks for coast-through-deadzone targets.}}{28}{figure.caption.72}%
+\contentsline {figure}{\numberline {4.5}{\ignorespaces Deceleration trajectory overlays, Phase~2.1 versus gap-fill, at nearby targets: the persistent low-speed slowdown at deadzone-edge targets is visible directly in the traces.}}{28}{figure.caption.73}%
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {5.1}{\ignorespaces Phase~2.2 LOOCV RMSE versus in-sample fit floor across the ten calibration conditions, split accel/decel. The gap between the bars is the excess of Equation~\ref {eq:excess}.}}{35}{figure.caption.83}%
+\contentsline {figure}{\numberline {5.2}{\ignorespaces LOOCV excess, Phase~2.2 (cold, from rest) versus gap-fill (warm, $n{=}5$). Warm-motor acceleration excess collapses to the deceleration level, confirming the cold-start hypothesis.}}{36}{figure.caption.87}%
+\contentsline {figure}{\numberline {5.3}{\ignorespaces Piggyback re-runs (two gap-fill runs) overlaid on the Phase~2.1 reference at the same conditions: the traces no longer coincide, exposing structured session-to-session drift.}}{38}{figure.caption.89}%
+\contentsline {figure}{\numberline {5.4}{\ignorespaces Piggyback $\tau $ and $|K_{\mathrm {ss}}|$ versus trial-order position in the gap-fill session: forward accel $\tau $ is inflated for the first ${\approx }30$\,s, then recovers as the motor warms.}}{38}{figure.caption.90}%
+\addvspace {10\p@ }
+\addvspace {10\p@ }

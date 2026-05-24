@@ -1,0 +1,41 @@
+\begin{thebibliography}{6}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Armstrong-H{\'e}louvry et~al.(1994)Armstrong-H{\'e}louvry, Dupont, and
+  Canudas~de Wit]{armstrong1994}
+Brian Armstrong-H{\'e}louvry, Pierre Dupont, and Carlos Canudas~de Wit.
+\newblock A survey of models, analysis tools and compensation methods for the
+  control of machines with friction.
+\newblock \emph{Automatica}, 30\penalty0 (7):\penalty0 1083--1138, 1994.
+
+\bibitem[Franklin et~al.(2019)Franklin, Powell, and Emami-Naeini]{franklin2019}
+Gene~F. Franklin, J.~David Powell, and Abbas Emami-Naeini.
+\newblock \emph{Feedback Control of Dynamic Systems}.
+\newblock Pearson, 8th edition, 2019.
+
+\bibitem[Hastie et~al.(2009)Hastie, Tibshirani, and Friedman]{hastie2009}
+Trevor Hastie, Robert Tibshirani, and Jerome Friedman.
+\newblock \emph{The Elements of Statistical Learning: Data Mining, Inference,
+  and Prediction}.
+\newblock Springer, New York, NY, USA, 2nd edition, 2009.
+
+\bibitem[Ljung(1999)]{ljung1999}
+Lennart Ljung.
+\newblock \emph{System Identification: Theory for the User}.
+\newblock Prentice Hall, Upper Saddle River, NJ, USA, 2nd edition, 1999.
+
+\bibitem[Seborg et~al.(2016)Seborg, Edgar, Mellichamp, and Doyle]{seborg2016}
+Dale~E. Seborg, Thomas~F. Edgar, Duncan~A. Mellichamp, and Francis~J. Doyle.
+\newblock \emph{Process Dynamics and Control}.
+\newblock Wiley, 4th edition, 2016.
+
+\bibitem[{STMicroelectronics}(2000)]{st_l298}
+{STMicroelectronics}.
+\newblock \emph{{L298 Dual Full-Bridge Driver}}, 2000.
+\newblock Datasheet, Doc.\ ID 1773.
+
+\end{thebibliography}

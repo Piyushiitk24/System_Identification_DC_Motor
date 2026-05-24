@@ -1,0 +1,68 @@
+% Chapter 6 — Closed-Loop Validation (Plan and Future Work)
+% Converted from thesis_notes/draft_ch6_closedloop.md
+\chapter{Closed-Loop Validation (Plan and Future Work)}
+\label{chap:closedloop}
+\lhead{\emph{Closed-Loop Validation}}
+
+\section{Objective and status}
+\label{sec:cl-obj}
+
+The open-loop identification of Chapters~\ref{chap:hardware}--\ref{chap:validation} produced a validated cascade model (Model~C) and quantified its predictive error within the calibration grid. The natural culmination of the thesis is to show that this model is not merely descriptive but \emph{useful}: that a controller designed against Model~C tracks a reference better than one designed against a naive single-LTI model of the same plant. \textbf{This closed-loop validation has not yet been carried out.} This chapter therefore states the hypothesis precisely, enumerates the software and firmware artifacts the experiment requires, specifies a bench protocol that respects the session-drift findings of \cref{chap:validation}, and predicts the performance the open-loop residuals imply. It is written as an actionable plan rather than a results chapter.
+
+\section{Hypothesis}
+\label{sec:cl-hyp}
+
+\begin{quote}
+\itshape
+A controller informed by the cascade model (direction-specific static block, region- and operating-point-dependent FOPDT dynamics) achieves lower reference-tracking error than a controller informed by a single global LTI model fitted to the same plant, with the largest advantage near the deadzone, at the operating-point extremes, and during direction reversals---the regimes where the single-LTI model is most misspecified.
+\end{quote}
+
+The hypothesis is falsifiable: if the cascade-aware controller does not beat the global-LTI baseline outside measurement noise, the additional model complexity is not justified for control, and that too is a publishable result.
+
+\section{Required artifacts}
+\label{sec:cl-artifacts}
+
+Three things must be built before any closed-loop trial can be run.
+
+\textbf{(1) A multi-transition / feedback-capable simulator.} The current simulator handles only a \emph{single} command transition---sufficient for open-loop step validation, insufficient for a closed loop where the command changes every sample. A v2 simulator must (i) accept an arbitrary command trajectory, (ii) select the accel/decel region and operating-point parameters per transition, (iii) handle re-acceleration mid-decay and direction reversal, and (iv) interpolate parameters between calibrated grid points (the bathtub in accel $\tau$ and the target-dependence in decel $\tau$ make naive interpolation unsafe near the deadzone). It should be \textbf{extracted into a reusable, version-controlled module}, separate from the analysis notebooks, so that firmware-in-the-loop and pure-simulation runs share one implementation.
+
+\textbf{(2) Closed-loop firmware.} The active firmware is the open-loop step sequencer (\sref{sec:firmware}); a controller variant is required---at minimum a velocity PID~\citep{franklin2019} on the encoder-derived RPM, with the same 10\,ms loop rate and telemetry format so the analysis pipeline is reused unchanged. Anti-windup and an explicit deadzone-feedforward term (using the breakaway/dropout thresholds of \sref{sec:deadzone}) are advisable given the plant's static nonlinearity.
+
+\textbf{(3) A baseline model to beat.} The naive comparator---\textbf{Model~A}, a single global LTI model (one gain, one time constant, no deadzone, no region split)---must be fitted from the same calibration data and used to design a matched baseline controller. Without this baseline the central claim cannot be evaluated.
+
+\section{Bench protocol}
+\label{sec:cl-protocol}
+
+The single most important protocol requirement follows directly from \sref{sec:xsession-val}: \textbf{Phase~2.1 parameters must not be reused as ground truth for a later session.} The cross-session drift---a cold-start warm-up transient, a persistent low-speed decel slowdown, and a persistent reverse high-PWM speed-up---is large enough (especially for deceleration) to invalidate stale calibration. The protocol must therefore be self-contained within one session:
+\begin{enumerate}
+  \item \textbf{In-session calibration block.} At session start, re-run the open-loop step grid (the original Phase~2.1 conditions, ideally extended with the gap-fill PWMs) and re-fit Model~C from \emph{that} session's data. This also yields a fresh global-LTI baseline.
+  \item \textbf{Warm-up margin.} Discard or down-weight the first ${\approx}30$\,s of operation, where forward accel $\tau$ is inflated (\sref{sec:warm}).
+  \item \textbf{Closed-loop trials.} With both controllers (cascade-aware and baseline) designed against the same-session calibration, run matched reference profiles: setpoint steps across the operating range, a slow ramp through the deadzone in both directions, direction reversals, and a small load/disturbance if a brake is available.
+  \item \textbf{Logging.} Record ambient temperature throughout (not logged in earlier sessions, status-doc \S5) and, if possible, a thermistor on the L298N to correlate driver-side drift.
+\end{enumerate}
+
+Predictions for the simulator use the same-session calibration, never the historical tables of Chapters~\ref{chap:dynamic}--\ref{chap:validation}.
+
+\section{Expected performance and risks}
+\label{sec:cl-perf}
+
+The open-loop residuals bound what closed-loop tracking can achieve. The within-session reproducibility floor of ${\approx}3$--$5$\,rpm (\sref{sec:val-summary}) is the best steady-state tracking error a perfect controller could reach on this rig; the cascade-aware controller should approach it across the operating range, while the global-LTI baseline should fall short specifically near the deadzone and at the $\tau$ extremes. Two risks are known in advance: cold-start transients will degrade tracking for the first ${\approx}30$\,s until the motor warms, and reverse stops through the deadzone (the noisy $240\to100$ condition of \sref{sec:decel} and \sref{sec:warm}) will show elevated, partly irreducible stochasticity. Both should be reported rather than engineered away, as they are properties of the plant.
+
+\section{Broader future work}
+\label{sec:cl-future}
+
+Beyond the closed-loop study, the open-loop identification leaves several threads, in rough priority order:
+\begin{itemize}
+  \item \textbf{Friction-explicit dynamic block (``Model~D'').} A Coulomb/Stribeck extension~\citep{armstrong1994} is motivated by the structured residuals at PWM~=~160 and in coast-to-rest decel (\sref{sec:accel}--\ref{sec:decel}); it would replace the effective-FOPDT treatment of those regimes.
+  \item \textbf{Higher-order dynamics near full drive.} The PWM~=~240 rise departs from first order (\sref{sec:accel}); a second-order or back-EMF-aware model would reduce the largest accel residuals.
+  \item \textbf{Grid extension.} Step-ups from below breakaway (breakaway dynamics), dynamic steps to PWM~=~255 (only a static spot-check exists), and decel from start PWMs other than 240 would close the remaining gaps in the operating envelope.
+  \item \textbf{Drift-mechanism study.} The unexplained ${\approx}20\,\%$ reverse high-PWM $\tau$ deflation (\sref{sec:xsession-val}) would require controlled idle-versus-immediate session pairs with thermistor instrumentation to falsify any specific cause (lubricant migration, brush-pattern reset, bearing seating).
+  \item \textbf{Instrumentation.} Routine ambient-temperature and driver-temperature logging should be standard for all future sessions, given the driver-side thermal sensitivity established in \cref{chap:static}.
+\end{itemize}
+
+\section{Summary}
+\label{sec:cl-summary}
+
+Closing the loop is the one major deliverable the thesis defers. The path is concrete: build a multi-transition simulator (extracted into \texttt{models/}), a PID firmware variant with deadzone feedforward, and a global-LTI baseline; run a self-contained session that calibrates in situ, warms up, and then compares cascade-aware against baseline control on matched reference profiles. The open-loop work predicts a ${\approx}3$--$5$\,rpm steady tracking floor and a cascade advantage concentrated at the deadzone, the $\tau$ extremes, and reversals---with the test designed so that a \emph{null} result (no advantage) would be an equally valid finding. The remaining open-loop refinements (Model~D, higher-order dynamics, grid extension, drift mechanism, instrumentation) are independent of, and not blocking for, this closed-loop study.
+
+\chaptersources{status-doc \S6 (Phase~3 scope, required artifacts, future work) \textperiodcentered{} \sref{sec:xsession-val} (cross-session drift $\to$ in-session calibration requirement) \textperiodcentered{} \texttt{notebooks/04\_validation.ipynb}, \texttt{05\_gap\_fill.ipynb} (single-transition simulator limitation) \textperiodcentered{} \texttt{thesis\_notes/log.md} 2026-05-22 (Phase~3 implications, in-session calibration).}

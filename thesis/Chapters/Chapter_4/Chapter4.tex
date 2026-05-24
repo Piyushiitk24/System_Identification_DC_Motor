@@ -1,0 +1,160 @@
+% Chapter 4 — Dynamic Characterization
+% Converted from thesis_notes/draft_ch4_dynamic.md
+\chapter{Dynamic Characterization}
+\label{chap:dynamic}
+\lhead{\emph{Dynamic Characterization}}
+
+\section{Objective}
+\label{sec:dyn-obj}
+
+\cref{chap:static} fixed the steady-state map; this chapter identifies how the motor moves \emph{between} operating points. The transient is modelled as a first-order-plus-dead-time (FOPDT) response~\citep{seborg2016}, and the central questions are structural: is one global time constant enough, or does the dynamic behaviour depend on operating point, on direction, and on whether the motor is speeding up or slowing down? The answers define the working model---termed \textbf{Model~C}---as a cascade in which a static block (\cref{chap:static}) feeds a dynamic block whose parameters are indexed by direction and by acceleration/deceleration region.
+
+\section{Method}
+\label{sec:dyn-method}
+
+\textbf{Trials.} Step responses were collected with the automated sequencer firmware (\sref{sec:firmware}), which removes operator timing variability. Acceleration (``step-up'') trials drive the motor from rest to a target PWM; deceleration (``step-down'') trials hold PWM~=~240 to a settled speed and then step down to a target. The Phase~2.1 session covered PWM $\in \{160, 200, 240\}$ accel ($\times 3$ runs) and $240\to\{0, 160\}$ decel ($\times 3$ runs); the gap-fill session added PWM $\in \{180, 220\}$ accel ($\times 5$ runs) and $240\to\{100, 180, 220\}$ decel ($\times 3$ runs), plus eight piggyback re-runs of Phase~2.1 conditions (\sref{sec:xsession}). The piggyback re-runs are not folded into Tables~\ref{tab:accel}--\ref{tab:decel}; they are reported separately as the cross-session drift signal and quantified in \cref{chap:validation}.
+
+\textbf{Model.} Acceleration is fitted as a rise from rest,
+\begin{equation}
+  \mathrm{rpm}(t) = \Kss\left(1 - e^{-(t - t_0 - \Td)/\tau}\right),
+  \label{eq:accel}
+\end{equation}
+and deceleration as a decay between two levels,
+\begin{equation}
+  \mathrm{rpm}(t) = \yfinal + (\yinit - \yfinal)\,e^{-(t - t_0 - \Td)/\tau},
+  \label{eq:decel}
+\end{equation}
+with gain $\Kss$ (or the level pair $\yinit, \yfinal$), dead time $\Td$, and time constant $\tau$.
+
+\textbf{Fitting.} Each trial is fitted in two stages: a 63.2\,\%-rise heuristic provides robust initial estimates, then a nonlinear least-squares solver refines them under physical bounds~\citep{ljung1999}. The bounds enforce $\tau \in [10, 1000]$\,ms and $\Td \in [0, 200]$\,ms; the gain is sign-constrained by direction with magnitude up to twice the heuristic estimate (and, for deceleration, the level pair bounded to $\pm 400$\,rpm), while $t_0$ is fixed at the step-command index. The heuristic alone snaps $\Td$ and $\tau$ to the 10\,ms sample grid; the nonlinear fit yields continuous parameters and per-window residuals (rise, steady-state, total). All fits converged---18/18 and 12/12 in Phase~2.1, 20/20 and 18/18 in gap-fill. Residual windows are recorded so that validation (\cref{chap:validation}) can compare like with like: the rise window for accel, and the post-2000\,ms fit window for decel.
+
+\section{Acceleration dynamics}
+\label{sec:accel}
+
+\begin{table}[t]
+  \centering
+  \caption{Acceleration FOPDT parameters, all ten operating points (mean $\pm$ std). $\Td$ is an effective curve-fit parameter (finding~4), not a physical latency.}
+  \label{tab:accel}
+  \small
+  \begin{tabular}{@{}llrrcrrl@{}}
+    \toprule
+    Dir & PWM & $\Kss$ (rpm) & $\Td$ (ms) & $\tau$ (ms) & rms$_{\mathrm{rise}}$ & $n$ & Session \\
+    \midrule
+    fwd & 160 & 52.08    & ${\approx}0$ & $200.1 \pm 22.0$ & 2.61 & 3 & P2.1 \\
+    fwd & 180 & 89.55    & 2.33  & $102.9 \pm 6.87$ & 3.70 & 5 & gap-fill \\
+    fwd & 200 & 123.53   & 4.92  & $95.1 \pm 4.64$  & 2.48 & 3 & P2.1 \\
+    fwd & 220 & 175.4    & 6.43  & $108.4 \pm 2.05$ & 4.97 & 5 & gap-fill \\
+    fwd & 240 & 209.74   & 17.06 & $152.3 \pm 2.74$ & 4.69 & 3 & P2.1 \\
+    rev & 160 & $-69.55$ & ${\approx}0$ & $191.7 \pm 12.15$ & 4.03 & 3 & P2.1 \\
+    rev & 180 & $-93.97$ & 1.25  & $93.08 \pm 0.88$ & 3.35 & 5 & gap-fill \\
+    rev & 200 & $-131.35$& 5.63  & $81.24 \pm 0.94$ & 2.66 & 3 & P2.1 \\
+    rev & 220 & $-180.0$ & 7.47  & $102.6 \pm 1.57$ & 5.10 & 5 & gap-fill \\
+    rev & 240 & $-222.56$& 23.49 & $144.4 \pm 2.45$ & 7.17 & 3 & P2.1 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+The acceleration FOPDT parameters are collected in \tref{tab:accel}; four findings follow.
+
+\textbf{(1) $\tau$ is operating-point dependent---a broad bathtub.} The time constant is smallest in the mid-range and rises at both ends: $\tau \approx 81$--$110$\,ms across PWM 180--220, climbing to ${\approx}145$--$152$\,ms at PWM~=~240 and ${\approx}192$--$200$\,ms at PWM~=~160 (\fref{fig:accel_tautd}, \fref{fig:accel_tau}). The bottom of the curve is flat across a ${\approx}40$-PWM window rather than a single sharp minimum---an earlier ``V-shape'' reading is refined here to a \textbf{bathtub}. A single global $\tau$ (call it ``Model~B'') is therefore misspecified by roughly $2\times$ across the range; a region-dependent dynamic block (Model~C) is required. The rise at PWM~=~160 is friction-dominated (the operating point sits just above breakaway); the rise at PWM~=~240 reflects departure from first-order behaviour near full drive (back-EMF/saturation), evidenced by the residuals below.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.95\textwidth]{07_tau_td_vs_pwm}
+  \caption{Acceleration time constant $\tau$ and (effective) dead time $\Td$ versus PWM, forward and reverse (Phase~2.1, mean $\pm$ std). $\tau$ rises at both ends of the operating range.}
+  \label{fig:accel_tautd}
+\end{figure}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.95\textwidth]{16_phase2gapfill_accel_tau_vs_pwm}
+  \caption{Acceleration $\tau$ and $|\Kss|$ versus PWM, combining Phase~2.1 (160/200/240) and gap-fill (180/220): the broad bathtub minimum spans PWM 180--220, while $|\Kss|$ stays linear in PWM.}
+  \label{fig:accel_tau}
+\end{figure}
+
+\textbf{(2) The gain is linear and direction-clean.} $\Kss$ rises smoothly and almost linearly with PWM within each direction, with very tight run-to-run spread (per-condition std $\le 2$\,rpm across the five gap-fill runs). The static-block separability of \cref{chap:static} thus holds across all five calibrated PWMs---the dynamics change with operating point, but the steady gain does not misbehave.
+
+\textbf{(3) The dynamic block is direction-symmetric to first order.} At every PWM, $\tau_{\mathrm{fwd}}$ and $\tau_{\mathrm{rev}}$ agree to within a small margin, with reverse running consistently a few percent faster. The largest gap is at PWM~=~200 (fwd 95\,ms vs rev 81\,ms, ${\approx}15\,\%$), which exceeds the run-to-run scatter and is flagged as a genuine but minor effect---possible static/dynamic coupling or commutation asymmetry---that does not undermine the cascade. Crucially, the \emph{large} directional asymmetry of \cref{chap:static} does \textbf{not} reappear in the dynamics, confirming that asymmetry lives in the static block.
+
+\textbf{(4) $\Td$ is an effective parameter, not physical latency.} The fitted dead time is ${\approx}0$ at PWM~=~160 and inflates to 17--23\,ms at PWM~=~240---the opposite of a fixed transport delay. This is the FOPDT model absorbing rise-shape error at the operating-point extremes; the genuine encoder/serial latency (${\approx}10$\,ms, one sample) is what the heuristic recovers. $\Td$ in \tref{tab:accel} should therefore be read as a curve-fit nuisance parameter, and PWM~=~200---where the rise is cleanly first-order (rms ${\approx}2.5$\,rpm)---taken as the canonical operating point. Fit quality degrades away from it: rms$_{\mathrm{rise}}$ climbs to ${\approx}4.7$\,rpm (PWM 240 fwd) and ${\approx}7.2$\,rpm (PWM 240 rev), with the residual grid (\fref{fig:accel_resid}) showing structured, not random, error there.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.95\textwidth]{08_fopdt_curvefit_residuals}
+  \caption{Curve-fit FOPDT rises with residual panels for the six Phase~2.1 acceleration conditions. Residuals are random at PWM~=~200 but structured at PWM~=~160 (friction onset) and PWM~=~240 (smooth onset), confirming effective-FOPDT behaviour at the extremes.}
+  \label{fig:accel_resid}
+\end{figure}
+
+\section{Deceleration dynamics}
+\label{sec:decel}
+
+\begin{table}[t]
+  \centering
+  \caption{Deceleration FOPDT parameters, all ten transitions from PWM~=~240 (mean $\pm$ std).}
+  \label{tab:decel}
+  \footnotesize
+  \begin{tabular}{@{}lrrrrcrrl@{}}
+    \toprule
+    Dir & $240\to$ & $\yinit$ & $\yfinal$ & $\Td$ (ms) & $\tau$ (ms) & rms$_{\mathrm{dec}}$ & $n$ & Session \\
+    \midrule
+    fwd & 0   & 214.3   & $-0.69$  & 55.19 & $172.2 \pm 1.77$  & 8.67 & 3 & P2.1 \\
+    fwd & 100 & 220.5   & 1.09     & 25.51 & $366.2 \pm 1.62$  & 4.74 & 3 & gap-fill \\
+    fwd & 160 & 215.7   & 73.75    & 14.06 & $275.3 \pm 8.77$  & 4.39 & 3 & P2.1 \\
+    fwd & 180 & 219.9   & 94.18    & 0.33  & $356.6 \pm 3.55$  & 4.28 & 3 & gap-fill \\
+    fwd & 220 & 219.4   & 175.9    & 8.92  & $122.9 \pm 16.14$ & 5.43 & 3 & gap-fill \\
+    rev & 0   & $-229.1$& ${\approx}0$ & 62.93 & $189.5 \pm 3.87$ & 9.78 & 3 & P2.1 \\
+    rev & 100 & $-229.9$& $-0.61$  & 25.27 & $349.0 \pm 20.43$ & 5.58 & 3 & gap-fill \\
+    rev & 160 & $-231.7$& $-85.66$ & 9.95  & $306.4 \pm 3.99$  & 2.82 & 3 & P2.1 \\
+    rev & 180 & $-229.8$& $-96.23$ & 5.94  & $321.3 \pm 19.13$ & 4.33 & 3 & gap-fill \\
+    rev & 220 & $-230.2$& $-181.8$ & 11.43 & $109.2 \pm 5.13$  & 5.49 & 3 & gap-fill \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+The deceleration parameters (\tref{tab:decel}) yield four further findings.
+
+\textbf{(1) Deceleration is slower than acceleration.} In the same operating range, decel $\tau$ exceeds every accel $\tau$: $240\to160$ decays with $\tau \approx 275$\,ms (fwd) / 306\,ms (rev), against accel $\tau$ of 95--152\,ms at PWM 200--240. Speeding up and slowing down are not the same process, which is the primary justification for splitting Model~C into separate accel and decel regions.
+
+\textbf{(2) Decel $\tau$ is non-monotone in the target.} It is \emph{not} simply ``slower for bigger steps.'' The slowest decays are to targets sitting on the deadzone edge---$240\to100$ and $240\to180$ ($\tau \approx 321$--$366$\,ms)---where the shaft must coast through the high-friction low-speed region. A full coast to rest ($240\to0$) is faster (172--190\,ms), and a mild decel ($240\to220$) is fastest (109--123\,ms). The deadzone, characterized statically in \cref{chap:static}, thus reshapes the \emph{dynamics} of any transition that passes near it (\fref{fig:decel_tau}, \fref{fig:decel_overlay}).
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.95\textwidth]{17_phase2gapfill_decel_tau_vs_target}
+  \caption{Deceleration $\tau$ and $|\yfinal|$ versus target PWM (from PWM~=~240), Phase~2.1 (targets 0, 160) plus gap-fill (100, 180, 220). $\tau$ peaks for coast-through-deadzone targets.}
+  \label{fig:decel_tau}
+\end{figure}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.95\textwidth]{18_phase2gapfill_decel_overlays}
+  \caption{Deceleration trajectory overlays, Phase~2.1 versus gap-fill, at nearby targets: the persistent low-speed slowdown at deadzone-edge targets is visible directly in the traces.}
+  \label{fig:decel_overlay}
+\end{figure}
+
+\textbf{(3) Regenerative braking is suppressed at non-zero targets.} Decel to 160 is slower than decel to 0 even though it is a smaller speed change. The likely cause is that at a non-zero PWM hold the L298N keeps chopping, preventing the regenerative braking that a pure coast (PWM~=~0) allows---an artefact of the driver, again localising a behavioural quirk to the static/driver side.
+
+\textbf{(4) The direction asymmetry reverses sign between regions.} In acceleration reverse is slightly \emph{faster} (\sref{sec:accel}); in deceleration reverse is slightly \emph{slower} ($240\to160$: 306 vs 275\,ms; $240\to0$: 190 vs 172\,ms). Equal magnitude, opposite sign. This indicates partial coupling between the static and dynamic blocks---the cascade holds but is not perfectly clean, and this is carried as an explicit thesis caveat. Finally, the coast-to-rest cases ($240\to0$, $\yfinal \approx 0$) are Coulomb-friction-dominated and so only effectively first-order; their residuals (rms ${\approx}8.7$--$9.8$\,rpm over the decel window) are the largest in the set but remain bounded.
+
+\section{Region structure: the definition of Model C}
+\label{sec:modelc}
+
+The findings compose into the working model. The plant is a cascade PWM\,$\to$\,static driver-voltage block (\cref{chap:static})\,$\to$\,motor dynamic block\,$\to$\,RPM, in which the dynamic block is \textbf{not} a single LTI system but a family of FOPDT responses indexed by:
+\begin{itemize}
+  \item \textbf{direction} (forward / reverse)---required by the static block, optional for the dynamics (small effect);
+  \item \textbf{region} (acceleration / deceleration)---required, since decel $\tau \approx 2\times$ accel $\tau$; and
+  \item \textbf{operating point}---accel $\tau$ follows a bathtub in PWM; decel $\tau$ depends non-monotonically on the target through the deadzone.
+\end{itemize}
+
+This is Model~C, the third rung of a candidate ladder fixed at the outset: \textbf{Model~A}, a single global LTI model with no static block ($u_{\mathrm{cmd}}\to$\,rpm), used only as the straw-man baseline of \cref{chap:closedloop}; \textbf{Model~B}, the static block followed by one global dynamic block (a single gain, $\tau$, and delay); \textbf{Model~C}, the static block with a region-dependent dynamic block (this chapter); and \textbf{Model~D}, an optional friction-explicit refinement. Model~B is rejected by the ${\approx}2\times$ spread in $\tau$ across operating points; Model~C is adopted as the working model; the Coulomb/Stribeck Model~D~\citep{armstrong1994}, motivated by the PWM~=~160 and coast-to-rest residuals, is left to future work.
+
+\section{Cross-session note}
+\label{sec:xsession}
+
+Tables~\ref{tab:accel} and~\ref{tab:decel} combine two bench sessions two weeks apart: PWM 160/200/240 and targets 0/160 from Phase~2.1, and PWM 180/220 and targets 100/180/220 from the gap-fill session (the \textsf{Session} column). The bathtub and target-dependence framings rely on combining both. Within either session, reproducibility is excellent (run-to-run $\tau$ std mostly $\le$ a few ms). Between sessions there is structured drift---most visibly, the gap-fill reverse high-PWM $\tau$ runs ${\approx}20\,\%$ below its Phase~2.1 value (${\approx}114$ vs 144\,ms in the piggyback re-runs), and low-speed-target decel runs slower than Phase~2.1 interpolation would predict. The consolidated tables are therefore an honest two-session composite, and the magnitude and structure of the drift are quantified as a validation result in \cref{chap:validation} rather than smoothed over here.
+
+\section{Summary}
+\label{sec:dyn-summary}
+
+The motor's transient response is well captured, operating point by operating point, as FOPDT. The dynamics are operating-point dependent (accel $\tau$ a broad bathtub, 81--200\,ms), region dependent (decel $\tau \approx 2\times$ accel, and non-monotone through the deadzone), and only weakly direction dependent---with the direction asymmetry switching sign between accel and decel, a small but real departure from a perfectly clean cascade. The fitted dead time is an effective parameter; PWM~=~200 is the canonical clean FOPDT point, and the extremes are effective fits with bounded, structured residuals that motivate a future friction-explicit model. The twenty-condition parameter set of Tables~\ref{tab:accel} and~\ref{tab:decel} is the dynamic block of Model~C; \cref{chap:validation} tests how well it predicts held-out trials and how far it transfers across runs and sessions.
+
+\chaptersources{\texttt{data/processed/phase21\_fopdt\_curvefit\_per\_condition.csv}, \texttt{phase2gapfill\_fopdt\_accel\_per\_condition.csv} (\tref{tab:accel}) \textperiodcentered{} \texttt{phase21\_stepdown\_curvefit\_per\_condition.csv}, \texttt{phase2gapfill\_stepdown\_per\_condition.csv} (\tref{tab:decel}) \textperiodcentered{} \texttt{notebooks/03\_step\_responses.ipynb}, \texttt{05\_gap\_fill.ipynb} (fits, figures 05--11, 16--18) \textperiodcentered{} status-doc \S4.2--\S4.3, \S5 \textperiodcentered{} \texttt{thesis\_notes/log.md} 2026-05-07 / 2026-05-22 (interpretation, accel/decel asymmetry, bathtub refinement).}

@@ -1,0 +1,345 @@
+\documentclass[12pt, a4paper, twoside, openright]{Thesis} % Paper size, default font size and one-sided paper
+\usepackage[utf8]{inputenc}
+\usepackage{lscape}
+\usepackage{rotating}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{amsmath}
+\usepackage{afterpage}
+\usepackage{multicol}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{adjustbox}
+\usepackage{ragged2e}
+\usepackage{mathtools} % To use box inside an aligned environment
+% NOTE (local BasicTeX build): trimmed packages absent in 2025basic and unused by content:
+%   wrapfig, comment, nccmath, multirow, makecell, placeins, arydshln, lipsum, enumitem.
+%   To compile with the FULL official preamble (e.g. Overleaf), restore these lines.
+
+% --- PACKAGE FIXES ---
+% Removed 'subfig' (conflicts with subcaption) and duplicates
+\usepackage{subcaption} 
+% \usepackage{subfig} % <--- Removed to prevent conflict
+
+% cleveref removed: it clashes with Thesis.cls's own \cref macro.
+% Cross-references use the class commands: \fref \tref \eref \cref \sref \aref.
+
+\newcommand\myemptypage{
+    \null
+    \thispagestyle{empty}
+    \addtocounter{page}{-1}
+    \newpage
+    }
+
+\graphicspath{{Pictures/}} % Specifies the directory where pictures are stored
+\usepackage[authoryear]{natbib}
+\hypersetup{urlcolor=blue, colorlinks=true} 
+
+\title{\ttitle} 
+
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows, positioning, arrows.meta, fit, backgrounds, calc}
+
+% Defining Tikz Style
+\tikzstyle{startstop} = [rectangle, rounded corners, minimum width=3cm, minimum height=1cm, text centered, text width = 10cm, draw=black, fill=white]
+
+\tikzstyle{process} = [rectangle, minimum width=3cm, minimum height=1cm, text centered, text width = 6cm, draw=black, fill=white, text width = 10cm]
+
+\tikzstyle{arrow} = [ultra thick,->,>=stealth, line width=0.7mm]
+
+\usepackage[T1]{fontenc}
+
+% --- Custom commands (added for this thesis) ---
+% Per-chapter internal-source block (repo references), distinct from the References list.
+\newcommand{\chaptersources}[1]{}% per-chapter repo-file source blocks removed (use \cite + References instead)
+% Consistent notation throughout.
+\newcommand{\Kss}{K_{\mathrm{ss}}}
+\newcommand{\Td}{T_{\mathrm{d}}}
+\newcommand{\yinit}{y_{\mathrm{init}}}
+\newcommand{\yfinal}{y_{\mathrm{final}}}
+\setlength{\emergencystretch}{3em}% absorb minor overfull lines (long code spans, math)
+
+% --- PDF METADATA FIX ---
+% These lines often cause "Undefined control sequence" at \begin{document} 
+% if \ttitle, \authornames etc. are not perfectly defined or contain formatting.
+% We comment them out to fix the error.
+% \hypersetup{pdftitle={\ttitle}}
+% \hypersetup{pdfsubject=\subjectname}
+% \hypersetup{pdfauthor=\authornames}
+% \hypersetup{pdfkeywords=\keywordnames}
+\begin{document}
+
+\frontmatter 
+
+\setstretch{1.6} 
+
+% Define the page headers using the FancyHdr package
+\fancyhead{} 
+\rhead{\thepage} 
+\lhead{} 
+
+\pagestyle{fancy} 
+
+\newcommand{\HRule}{\rule{\linewidth}{0.5mm}} 
+
+%----------------------------------------------------------------------------------------
+%	TITLE PAGE
+%----------------------------------------------------------------------------------------
+\include{title}
+\newpage
+\myemptypage
+
+%----------------------------------------------------------------------------------------
+% Certificate from Supervisor
+%----------------------------------------------------------------------------------------
+\clearpage
+\pagenumbering{roman} 
+\setcounter{page}{2}
+\let\oldaddcontentsline\addcontentsline
+\renewcommand{\addcontentsline}[3]{}
+\Declaration{
+It is certified that the work contained in the thesis titled \textbf{``System Identification of a DC Gearmotor and L298N Driver: A Validated Cascade Model with Region-Dependent Dynamics''}, by \textbf{Piyush Tiwari} (\textbf{Roll No. 241040099}) has been carried out under our supervision and that this work has not been submitted elsewhere for a degree.
+\vspace*{15mm}
+\begin{flushright}
+\begin{minipage}{0.46\linewidth}\centering
+\textbf{Prof.\ Soumya Ranjan Sahoo}\\
+(Thesis Supervisor)\\
+Department of Electrical Engineering,\\
+Indian Institute of Technology Kanpur.
+\end{minipage}\hfill
+\begin{minipage}{0.46\linewidth}\centering
+\textbf{Dr.\ Abhilash Patel}\\
+(Thesis Co-Supervisor)\\
+Department of Electrical Engineering,\\
+Indian Institute of Technology Kanpur.
+\end{minipage}
+\end{flushright}
+\vspace*{8mm}
+May 2026
+\vfill{}
+}
+\let\addcontentsline\oldaddcontentsline
+
+\clearpage 
+
+\myemptypage 
+
+\clearpage 
+
+%-------------------------------------------------------------
+%	DECLARATION PAGE
+%-------------------------------------------------------------
+\setcounter{page}{3}  
+\thispagestyle{plain} 
+
+\begin{center}
+    \LARGE \textbf{Declaration}
+\end{center}
+\vspace{1em}
+
+This is to certify that the thesis titled \textbf{``System Identification of a DC Gearmotor and L298N Driver: A Validated Cascade Model with Region-Dependent Dynamics''} has been authored by me.
+It presents the research conducted by me under the supervision of \textbf{Prof.\ Soumya Ranjan Sahoo} and the co-supervision of \textbf{Dr.\ Abhilash Patel}.\par
+
+To the best of my knowledge, it is an original work, both in terms of research content and narrative, and has not been submitted elsewhere, in part or in full, for a degree.
+Further, due credit has been attributed to the relevant state-of-the-art and collaborations with appropriate citations and acknowledgments, in line with established norms and practices.
+\bigskip
+\bigskip
+\bigskip
+\bigskip
+
+\begin{flushright}
+   \vspace{2mm}
+\textbf{Piyush Tiwari} \\
+\textbf{Roll No.} 241040099 \\
+Master of Technology (Control \& Automation)\\
+Department of Electrical Engineering, \\
+Indian Institute of Technology Kanpur,\\
+Kanpur, 208016, India.
+\end{flushright}
+
+\newpage
+\myemptypage
+
+%----------------------------------------------------------------------------------------
+%	ABSTRACT PAGE
+%----------------------------------------------------------------------------------------
+%\addtotoc{Synopsis}
+\clearpage
+\abstract{
+\thispagestyle{plain} 
+%\addtocontents{toc}{} 
+\vspace{-10mm}
+{\bigskip
+    \HRule \\[0.1cm] 
+		\textbf{Name of the Student}: Piyush Tiwari	\hfill \textbf{Roll No}: 241040099 \\
+		\textbf{Degree for which submitted}: Master of Technology \hfill \textbf{Department}: Electrical Engineering \\
+		\textbf{Thesis Title}: System Identification of a DC Gearmotor and L298N Driver: A Validated Cascade Model with Region-Dependent Dynamics\\
+		\textbf{Thesis Supervisor}: Prof.\ Soumya Ranjan Sahoo \hfill \textbf{Co-Supervisor}: Dr.\ Abhilash Patel \\
+		\textbf{Month and Year of Thesis Submission}: May 2026\\[0.1cm] }
+		\HRule \\[0.1cm] 	
+This thesis presents an open-loop system identification of a brushed DC gearmotor driven by an L298N H-bridge, instrumented with a 600-PPR quadrature encoder and an Arduino Uno R4 Minima. Rather than fit a single global linear model, the plant is described as a \emph{cascade}: a static driver-voltage block followed by a motor dynamic block. Static characterisation shows that the plant's large forward/reverse asymmetry originates almost entirely in the L298N---the PWM-to-voltage map differs by direction by up to a factor of 2.2 near the deadzone, while the motor's voltage-to-speed gain is direction-symmetric to within 9\,\% ($K_{\mathrm{fwd}}=26.94$, $K_{\mathrm{rev}}=24.52$~rpm/V)---and that the deadzone is hysteretic (breakaway 154/144, dropout 114/112 PWM). Dynamic characterisation fits first-order-plus-dead-time responses across twenty operating points and shows that a single time constant is inadequate: acceleration $\tau$ follows a broad bathtub in PWM, deceleration is roughly twice as slow and varies non-monotonically with the target through the deadzone, and the direction asymmetry reverses sign between speeding up and slowing down. This region-dependent model (``Model~C'') is validated by leave-one-out cross-validation, with a predictive excess of $+1.06$~rpm for acceleration and $+0.10$~rpm for deceleration; the acceleration penalty is shown to be cold-start stochasticity, collapsing to $-0.05$~rpm once the motor is warm. A bench session two weeks later quantifies structured calibration drift, motivating in-session recalibration. The thesis closes with a concrete plan for the deferred closed-loop validation, in which the cascade model is to be tested against a single-LTI baseline.
+}
+\newpage
+\myemptypage
+
+%----------------------------------------------------------------------------------------
+%	ACKNOWLEDGEMENTS
+%----------------------------------------------------------------------------------------
+\setstretch{1.3} 
+
+\acknowledgements{\addtocontents{toc}{} 
+
+I am deeply grateful to my thesis supervisor, Prof.~Soumya Ranjan Sahoo, and my co-supervisor, Dr.~Abhilash Patel, of the Department of Electrical Engineering, for their guidance, encouragement, and patience throughout this work. I thank the Department of Electrical Engineering, IIT~Kanpur, for the laboratory facilities that made the bench experiments possible, and my colleagues and family for their constant support.
+\\
+
+\begin{flushleft}
+    \textbf{Piyush Tiwari}
+\end{flushleft}
+
+}
+\clearpage 
+\myemptypage
+
+%----------------------------------------------------------------------------------------
+%	LIST OF CONTENTS/FIGURES/TABLES PAGES
+%----------------------------------------------------------------------------------------
+
+\pagestyle{fancy} 
+\lhead{\emph{Contents}} 
+
+% --- TOC FIX ---
+\begingroup
+    \let\cleardoublepage\clearpage 
+    \tableofcontents 
+\endgroup
+
+\begingroup
+    \let\cleardoublepage\clearpage 
+    \lhead{\emph{List of Figures}} 
+    \setcounter{page}{8} 
+    \listoffigures 
+\endgroup
+\myemptypage
+
+% --- LIST OF TABLES ---
+\clearpage 
+\begingroup 
+  \let\cleardoublepage\clearpage 
+  \setcounter{page}{9} 
+  \lhead{\emph{List of Tables}} 
+  \listoftables 
+\endgroup
+
+\clearpage
+\myemptypage
+
+%----------------------------------------------------------------------------------------
+%	ABBREVIATIONS
+%----------------------------------------------------------------------------------------
+\setstretch{1.25} 
+\clearpage 
+\begingroup 
+  \let\cleardoublepage\clearpage 
+  \setcounter{page}{10}
+\lhead{\emph{Abbreviations}}  
+\listofsymbols{ll} 
+{
+\textbf{DC}    & Direct Current \\
+\textbf{DMM}   & Digital Multimeter \\
+\textbf{EMF}   & Electromotive Force \\
+\textbf{FOPDT} & First-Order-Plus-Dead-Time \\
+\textbf{ISR}   & Interrupt Service Routine \\
+\textbf{LOOCV} & Leave-One-Out Cross-Validation \\
+\textbf{LTI}   & Linear Time-Invariant \\
+\textbf{PPR}   & Pulses Per Revolution \\
+\textbf{PSU}   & Power Supply Unit \\
+\textbf{PWM}   & Pulse-Width Modulation \\
+\textbf{RPM}   & Revolutions Per Minute \\
+}
+\endgroup
+\clearpage
+\myemptypage
+
+%----------------------------------------------------------------------------------------
+%	SYMBOLS
+%----------------------------------------------------------------------------------------
+\begingroup 
+    \let\cleardoublepage\clearpage 
+    \lhead{\emph{Symbols}} 
+    \setcounter{page}{11} 
+    \listofnomenclature{lll} 
+    {
+    $\tau$ & Time constant of the FOPDT response & ms \\
+    $\Td$ & Dead time (effective curve-fit parameter) & ms \\
+    $\Kss$ & Acceleration steady-state gain (PWM\,$\to$\,RPM) & rpm \\
+    $\yinit,\ \yfinal$ & Initial / final speed of a deceleration step & rpm \\
+    $V_{\mathrm{motor}}$ & Mean delivered motor voltage & V \\
+    $K_{\mathrm{fwd}},\ K_{\mathrm{rev}}$ & Motor voltage-to-speed gain (fwd / rev) & rpm/V \\
+    }
+\endgroup 
+
+\clearpage
+\myemptypage 
+%----------------------------------------------------------------------------------------
+%	List of Publications
+%----------------------------------------------------------------------------------------
+% (List of Publications page removed.)
+%----------------------------------------------------------------------------------------
+%	DEDICATION
+%----------------------------------------------------------------------------------------
+\setstretch{1.3} 
+\pagestyle{empty} 
+% (Dedication removed.)
+\addtocontents{toc}{\vspace{2em}} 
+
+%----------------------------------------------------------------------------------------
+%	THESIS CONTENT - CHAPTERS
+%----------------------------------------------------------------------------------------
+
+\mainmatter 
+
+\pagestyle{fancy} 
+
+\input{Chapters/Chapter_1/Chapter1}
+\input{Chapters/Chapter_2/Chapter2} 
+\input{Chapters/Chapter_3/Chapter3}
+\input{Chapters/Chapter_4/Chapter4} 
+\input{Chapters/Chapter_5/Chapter5} 
+\input{Chapters/Chapter_6/Chapter6}
+\input{Chapters/Chapter_7/Chapter7}
+
+\clearpage 
+
+%----------------------------------------------------------------------------------------
+%	APPENDICES
+%----------------------------------------------------------------------------------------
+
+\addtocontents{toc}{\vspace{2em}} 
+
+\appendix 
+
+% \input{Appendices/AppendixA}   % no appendices yet
+% \input{Appendices/AppendixB}
+
+\addtocontents{toc}{\vspace{2em}} 
+
+\backmatter
+
+%----------------------------------------------------------------------------------------
+%	BIBLIOGRAPHY
+%----------------------------------------------------------------------------------------
+
+\label{References}
+
+\lhead{\emph{References}} 
+\renewcommand\bibname{References}
+\bibliographystyle{plainnat} % IEEEtran.bst absent on local BasicTeX; plainnat = natbib author-year
+
+\bibliography{references} 
+
+%\newpage
+%\include{LOP}
+\newpage
+% \include{Biography}   % no Biography.tex provided
+
+\end{document}
