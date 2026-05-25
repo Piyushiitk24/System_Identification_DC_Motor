@@ -15,6 +15,9 @@ workflow. The current analysis state is later:
 - Phase 2 gap-fill, session-to-session drift analysis, and refined LOOCV
   comparison are in `notebooks/05_gap_fill.ipynb`.
 - The running thesis narrative and conclusions live in `thesis_notes/log.md`.
+- Thesis chapter drafts live in `thesis_notes/draft_ch*.md`; use
+  `thesis_notes/repo_status_2026-05-21.md` as the cross-checked snapshot of
+  reported thesis numbers before editing prose.
 
 Treat `thesis_notes/log.md`, processed CSVs, and notebooks as the source of
 truth for the latest modeling state.
@@ -101,6 +104,13 @@ Execute a notebook:
 ```
 
 Jupyter may need permission to bind a local kernel socket in this environment.
+
+Compile the thesis draft:
+
+```bash
+cd thesis
+latexmk -pdf main.tex
+```
 
 Capture an automated GO-based step-response run, only when hardware is
 connected and the matching automated firmware is flashed:
@@ -220,6 +230,26 @@ When adding notebook cells:
 - In notebook 03, `rms_decel` is the documented 1500 ms post-step window
   `[3000, 4500]` ms. For apples-to-apples LOOCV comparison against the decel
   fit window, use `rms_total`.
+
+## Thesis Writing Layer
+
+This repo also holds the M.Tech thesis. Keep thesis-facing prose traceable to
+the data and status snapshot:
+
+- Chapter drafts are `thesis_notes/draft_ch1_introduction.md` through
+  `thesis_notes/draft_ch7_conclusion.md`. They are Markdown drafts intended to
+  convert mechanically to LaTeX. Chapter 6 is a forward-looking closed-loop
+  plan; Phase 3 has not been run.
+- `thesis_notes/repo_status_2026-05-21.md` is the status-doc: a cross-checked
+  snapshot of reported numbers pulled from `data/processed/*.csv` and the raw
+  static/deadzone CSVs. For a thesis number, CSV wins over prose.
+- The LaTeX working copy is in `thesis/`; the pristine IITK template copy is in
+  `IITK Thesis Template (LaTeX Code File)/`. Thesis figures live in
+  `thesis/Pictures/` and mirror the generated figures where needed.
+- Before changing a reported conclusion, inspect or re-run the relevant
+  notebook and processed CSV, then keep the chapter draft, status-doc,
+  `AGENTS.md`, and `thesis_notes/log.md` consistent. Do not edit one of those
+  artifacts in isolation when the underlying model meaning changes.
 
 ## Git Hygiene
 

@@ -8,6 +8,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 The README and `manual.md` describe the original Phase 0-1 manual workflow and are no longer the latest state. The current state is Phase 2 gap-fill after Phase 2.2 LOOCV validation. The source of truth for the latest modeling conclusions is `thesis_notes/log.md` plus the processed CSVs in `data/processed/` and the notebooks, especially `notebooks/05_gap_fill.ipynb`.
 
+For thesis-facing work, the source of truth for prose is the chapter drafts in `thesis_notes/draft_ch*.md`, and the cross-checked snapshot of every reported number is `thesis_notes/repo_status_2026-05-21.md` (the "status-doc"). See *Thesis writing layer* below before editing either.
+
 ## How To Use This With An IDE Agent
 
 Open the IDE or agent from the repository root:
@@ -148,3 +150,13 @@ Notebooks are numbered by phase: `01_static_map.ipynb` (Phase 1.1), `03_step_res
 In notebook 03, `rms_decel` is the documented 1500 ms post-step window `[3000, 4500]` ms. For apples-to-apples LOOCV comparison against the decel fit window, use `rms_total`.
 
 When an analysis result lands, the corresponding commit should bundle the notebook, the new processed CSV, the figures, and the `thesis_notes/log.md` entry that interprets them.
+
+### Thesis writing layer
+
+The repo also holds the M.Tech thesis. There are three pieces, and they have different roles:
+
+- **Chapter drafts** (`thesis_notes/draft_ch1_introduction.md` … `draft_ch7_conclusion.md`): the working prose, written in Markdown that "converts to LaTeX mechanically." Numbering is Intro = Ch1, body = Ch2–6, Conclusion = Ch7 (Ch6 closed-loop is forward-looking — Phase 3 is not yet run). Each draft's header block lists exactly which CSVs, figures, and status-doc sections its numbers trace to; preserve that traceability when editing.
+- **Status-doc** (`thesis_notes/repo_status_2026-05-21.md`): a snapshot that pulls every reported number directly from `data/processed/*.csv` (and `data/raw/` for the static block). Its rule is *CSV wins* — where `log.md`, `AGENTS.md`, or a notebook disagrees with the CSV, the CSV is ground truth and the discrepancy is flagged. Use this to check a number before quoting it in the thesis.
+- **LaTeX build** (`thesis/`): the IITK template (working copy; pristine original is in `IITK Thesis Template (LaTeX Code File)/`). Compile `thesis/main.tex` with `latexmk`. The preamble is trimmed for a local BasicTeX (2025basic) install — the note in `main.tex` lists the packages removed and to restore for a full TeX Live / Overleaf build. Figures live in `thesis/Pictures/` (mirrors `figures/`).
+
+A reported thesis number should be consistent across the draft, the status-doc, and the processed CSV it came from. If you change a modeling conclusion, the locked numbers in `AGENTS.md`, the chapter draft, and the status-doc all need to move together — do not edit one in isolation.
