@@ -14,10 +14,22 @@ workflow. The current analysis state is later:
 - Phase 2.2 LOOCV validation is in `notebooks/04_validation.ipynb`.
 - Phase 2 gap-fill, session-to-session drift analysis, and refined LOOCV
   comparison are in `notebooks/05_gap_fill.ipynb`.
+- The A/B/C transfer-function model-selection ladder (in-sample structural
+  comparison of the candidates from `plan.md` §3.3) is in
+  `notebooks/06_model_comparison.ipynb`. It covers the clean Phase 2.1 grid
+  (30 trials) and a full-envelope extension (68 trials) that adds the
+  gap-fill 180/220 accel and 240->100/180/220 decel conditions. Persisted
+  A/B/C parameters live in `models/model_{A,B,C}.json` (previously empty
+  directory, populated 2026-05-25).
 - The running thesis narrative and conclusions live in `thesis_notes/log.md`.
 - Thesis chapter drafts live in `thesis_notes/draft_ch*.md`; use
   `thesis_notes/repo_status_2026-05-21.md` as the cross-checked snapshot of
-  reported thesis numbers before editing prose.
+  reported thesis numbers before editing prose. The standalone model-selection
+  draft is `thesis_notes/draft_model_selection.md`, integrated as §4.6 in
+  `thesis/Chapters/Chapter_4/Chapter4.tex`.
+- The thesis LaTeX is built: `thesis/main.pdf` (~79 pages, last rebuild
+  2026-05-25) reflects Chapters 1-7 with the integrated §4.6 model-selection
+  section (Tables 4.3-4.4, Figures 4.6-4.8 = generated `figures/20`-`22`).
 
 Treat `thesis_notes/log.md`, processed CSVs, and notebooks as the source of
 truth for the latest modeling state.
@@ -167,6 +179,16 @@ Current Phase 2 gap-fill processed outputs include:
 - `phase2gapfill_loocv_decel.csv`
 - `phase2gapfill_loocv_summary_combined.csv`
 
+Model-selection ladder processed outputs (from `notebooks/06_model_comparison.ipynb`):
+
+- `phase21_model_ladder_per_trial.csv` (30 trials, per-trial A/B/C scores)
+- `phase21_model_ladder_summary.csv` (P2.1 grid: by region x direction, plus
+  overall)
+- `phase2_full_model_ladder_per_trial.csv` (68 trials, full envelope incl.
+  gap-fill)
+- `phase2_full_model_ladder_summary.csv` (full grid: by region x direction,
+  by session, overall)
+
 There is currently no `data/raw/_sealed/` validation dataset. Do not create or
 populate it casually. Phase 2.2 uses LOOCV on the 30 Phase 2.1 trials, and
 the gap-fill analysis uses within-condition LOOCV on the new 180/220 accel
@@ -213,6 +235,33 @@ Latest Phase 2 gap-fill interpretation:
   block before closed-loop trials, then should use that same-session
   calibration for simulator predictions.
 
+A/B/C model-selection result (notebook 06, locked 2026-05-25):
+
+- Phase 2.1 grid headline (30 trials, single session, in-sample structural
+  comparison): overall post-step RMSE A=34.7 / B=6.96 / C=4.07 rpm; FIT% =
+  -157 / +63 / +78. Model C wins in every direction x region group
+  (accel-fwd, accel-rev, decel-fwd, decel-rev).
+- A->B improvement (adding the static block) is the dominant gain
+  (~35 -> ~7 rpm RMSE). B->C improvement (region-dependent tau) is smaller
+  but real and concentrated in the transient (B ~15 rpm vs C ~6 rpm
+  transient RMSE).
+- Model A global fit: `K_A = 0.785 rpm/PWM` (LS through origin), `tau = 207
+  ms`, `Td = 20 ms` (single proportional gain, no static block, no deadzone).
+- Model B global fit: `tau = 187 ms`, `Td = 16 ms` (one global tau for every
+  transition, on top of C's per-condition static block).
+- Full-envelope extension (68 trials, P2.1 + gap-fill 180/220 accel and
+  240->100/180/220 decel, two sessions, A and B re-fit globally): overall
+  RMSE 35.0 / 8.5 / 4.3 rpm. The `A<<B<C` ordering replicates independently
+  in each session (P2.1 34.8/7.1/4.1; gap-fill 35.2/9.7/4.5).
+- The added mid-range PWM 180/220 points are exactly where Model B is worst
+  (accel transient RMSE B vs C: 4.5/4.2 at 160, 18.3/3.6 at 180, 28.8/2.6
+  at 200, 30.5/4.7 at 220, 15.8/6.8 at 240) -- broadening the grid
+  *strengthens* the B->C case rather than just extending it.
+- Caveat: the full grid mixes two sessions (as do Tables 4.1-4.2). The
+  cross-session penalty falls on all three models alike; the single-session
+  Phase 2.1 result (Table 4.3) remains the clean structural reference, with
+  the full-envelope numbers in Table 4.4.
+
 Before changing these conclusions, re-run or inspect the relevant notebook and
 the corresponding processed CSV.
 
@@ -245,7 +294,13 @@ the data and status snapshot:
   static/deadzone CSVs. For a thesis number, CSV wins over prose.
 - The LaTeX working copy is in `thesis/`; the pristine IITK template copy is in
   `IITK Thesis Template (LaTeX Code File)/`. Thesis figures live in
-  `thesis/Pictures/` and mirror the generated figures where needed.
+  `thesis/Pictures/` and mirror the generated figures where needed. Build:
+  `cd thesis && latexmk -pdf main.tex` (local toolchain is BasicTeX 2025basic;
+  `main.tex` has a comment listing packages trimmed for that build versus the
+  full Overleaf/TeX-Live preamble). `thesis/main.pdf` is current at ~79 pages
+  (last rebuild 2026-05-25) and now includes §4.6 *Model selection: the A/B/C
+  ladder, quantified*, with Table 4.3 (Phase 2.1 scoreboard), Table 4.4
+  (full-envelope, by-session), and Figures 4.6-4.8 (= `figures/20`-`22`).
 - Before changing a reported conclusion, inspect or re-run the relevant
   notebook and processed CSV, then keep the chapter draft, status-doc,
   `AGENTS.md`, and `thesis_notes/log.md` consistent. Do not edit one of those
