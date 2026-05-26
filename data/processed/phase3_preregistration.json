@@ -1,0 +1,50 @@
+{
+  "hypothesis": "Cascade controller (Model C + FF + region gains) tracks references better than baseline (Model A IMC PI), with largest advantage near deadzone, at PWM extremes, and during reversals.",
+  "controllers": {
+    "BASE": "Model A IMC PI, single global gain set, no feedforward.",
+    "CASC": "Model C IMC PI x 4 region sets at op_pwm=200, inverse-static FF table."
+  },
+  "lambda_ms": 200.0,
+  "op_pwm": 200,
+  "pwm_max": 255.0,
+  "pwm_slew_per_sample": 30.0,
+  "rpm_quantum": 2.5,
+  "profiles": {
+    "P1": "Bidirectional staircase 0->+80->+150->+200->...->-200->...->0, 3 s holds.",
+    "P2": "Bidirectional ramp through deadzone: 0->+150 (10s), hold (5s), +150->0 (10s), hold (3s), 0->-150 (10s), hold (5s), -150->0 (10s).",
+    "P3": "+100 hold 3s -> ramp to -100 over 4s -> hold -100 3s.",
+    "P4": "Small-signal negative control: 150->160->150->160, 2 s holds."
+  },
+  "targeted_profiles": [
+    "P1",
+    "P2",
+    "P3"
+  ],
+  "negative_control_profile": "P4",
+  "n_pairs_per_profile": 8,
+  "pairing": "Explicit pair_id; controller alternated within pair; pair order randomised within profile blocks.",
+  "metrics": [
+    "rmse_full",
+    "rmse_deadzone",
+    "rmse_transient",
+    "settling_time",
+    "overshoot",
+    "ss_error",
+    "rms_pwm"
+  ],
+  "headline_metric": "rmse_full per pair, difference BASE - CASC",
+  "success": {
+    "primary": {
+      "cond_1": "median(BASE - CASC) > 0 on each of P1, P2, P3",
+      "cond_2": "pooled paired-difference (within-profile MAD-standardised) one-sided Wilcoxon p < 0.10 for \"diff > 0\""
+    },
+    "strong": {
+      "cond_1": "primary holds",
+      "cond_2": "95% paired-bootstrap CI excludes zero on >= 2 of P1, P2, P3"
+    }
+  },
+  "p4_role": "negative control; positive result there weakens interpretation but does not invalidate primary findings",
+  "null_handling": "write up honestly as a null; discuss drift, tuning fairness, and controller-form parity in Ch6",
+  "frozen_on": "2026-05-26 (Stage 0)",
+  "frozen_by_notebook": "notebooks/07a_closed_loop_sim.ipynb"
+}
