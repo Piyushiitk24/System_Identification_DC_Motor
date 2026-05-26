@@ -1,14 +1,14 @@
 # Fdb version 4
-["bibtex main"] 1779591420.41534 "main.aux" "main.bbl" "main" 1779591460.97264 0
+["bibtex main"] 1779689516.80967 "main.aux" "main.bbl" "main" 1779689519.73387 0
   "./references.bib" 1779556039.83882 1582 ca2b7ba07970573e81e5567b37c477e1 ""
   "/usr/local/texlive/2025basic/texmf-dist/bibtex/bst/natbib/plainnat.bst" 1233624470 26816 ffe5423d2019860bad9f54bc402fac15 ""
-  "main.aux" 1779591460.81263 25721 90fd322a2eaefdc1d1061eacd28d3779 "pdflatex"
-  "title.aux" 1779591459.09583 939 93ab767026960f9ee36a44b568787b2e "pdflatex"
+  "main.aux" 1779689519.57386 29651 55348ac26f1f816909b0fb2cf90608d3 "pdflatex"
+  "title.aux" 1779689517.44016 939 93ab767026960f9ee36a44b568787b2e "pdflatex"
   (generated)
   "main.bbl"
   "main.blg"
   (rewritten before read)
-["pdflatex"] 1779591458.45606 "main.tex" "main.pdf" "main" 1779591460.9728 0
+["pdflatex"] 1779689516.82481 "main.tex" "main.pdf" "main" 1779689519.73402 0
   "/usr/local/texlive/2025basic/texmf-dist/fonts/enc/dvips/cm-super/cm-super-t1.enc" 1136849721 2971 def0b6c1f0b107b3b936def894055589 ""
   "/usr/local/texlive/2025basic/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc" 1136849721 2900 1537cc8184ad1792082cd229ecc269f4 ""
   "/usr/local/texlive/2025basic/texmf-dist/fonts/tfm/jknappen/ec/ecbi1200.tfm" 1136768653 3072 ccae1a240ab272417e4399fe942df546 ""
@@ -266,7 +266,7 @@
   "Chapters/Chapter_2/Chapter2.tex" 1779591454.29399 12912 28686974c6f8e94e0ea54aa58b84f709 ""
   "Chapters/Chapter_2/figures/fig_blockdiagram.tex" 1779535730.93245 1998 5ab181c19e2eabb1e80624425f2d23d4 ""
   "Chapters/Chapter_3/Chapter3.tex" 1779583408.49676 14464 9e2ce6a1fb5d53db7d537743e0a20d7a ""
-  "Chapters/Chapter_4/Chapter4.tex" 1779556195.10896 16510 3f43b6fc8875b86d45abc6008582d66f ""
+  "Chapters/Chapter_4/Chapter4.tex" 1779688808.79225 25547 8acc3ad539a06614da71a4dfde10f8c3 ""
   "Chapters/Chapter_5/Chapter5.tex" 1779556198.32002 11997 a550cfe8ab18051ad2228b3d2be46ece ""
   "Chapters/Chapter_6/Chapter6.tex" 1779556203.64834 8974 7fbb4c638add6e17c4ac6d40be72bc17 ""
   "Chapters/Chapter_7/Chapter7.tex" 1779539579.83257 6228 67051dec29236820862afdc3d40e8d11 ""
@@ -284,20 +284,23 @@
   "Pictures/17_phase2gapfill_decel_tau_vs_target.png" 1779538514.86598 121946 b33b1df9011cd62d90e3c2b7877577a5 ""
   "Pictures/18_phase2gapfill_decel_overlays.png" 1779538514.86644 282681 ee02e9e214ee01a829119534e4747f7a ""
   "Pictures/19_loocv_phase22_vs_gapfill.png" 1779538514.86691 59712 686f81b7a27c5804859a6756c26fc128 ""
+  "Pictures/20_model_ladder_overlay.png" 1779688240.29915 245854 2ffe6390717d38e151e0fade614850ed ""
+  "Pictures/21_model_ladder_scoreboard.png" 1779688240.29987 68960 3469e1f09503581825602d859efb7c9b ""
+  "Pictures/22_model_ladder_fullgrid.png" 1779688796.18823 159131 6e21b613ef2af1b9fb7c950d428d6596 ""
   "Thesis.cls" 1779536920.85231 12461 a3da95f46139630f5c16c4878a37f4e5 ""
   "booktabs.sty" 1779535730.92829 6375 989ecfb545a13610facc71ae7e40ced1 ""
   "fancyhdr.sty" 1779535730.92882 20521 e5d13d98d57bd53d4fed3aa61bd29c86 ""
-  "main.aux" 1779591460.81263 25721 90fd322a2eaefdc1d1061eacd28d3779 "pdflatex"
-  "main.bbl" 1779591420.42897 1748 a2c3e1087a3388ce1e478fe7be0be687 "bibtex main"
-  "main.lof" 1779591460.81458 4178 6212dd61e2df0ff01d1fa879b1af6eec "pdflatex"
-  "main.lot" 1779591460.8146 1991 c94e63c69b705bde2abe9397f1803894 "pdflatex"
-  "main.out" 1779591460.81431 11216 464a8f4f0d2ab8edd78ded1f337afbcd "pdflatex"
+  "main.aux" 1779689519.57386 29651 55348ac26f1f816909b0fb2cf90608d3 "pdflatex"
+  "main.bbl" 1779689516.82232 1748 a2c3e1087a3388ce1e478fe7be0be687 "bibtex main"
+  "main.lof" 1779689519.57633 5311 e350bed59cf37142a122792611142c76 "pdflatex"
+  "main.lot" 1779689519.57636 2648 5b434881858882d07ff446c18f2d7885 "pdflatex"
+  "main.out" 1779689519.576 11538 edcd143f9a0fc1ca9fed95c2e2db7151 "pdflatex"
   "main.tex" 1779591410.0948 13450 c9448ca74514ce3d85af0786b6d87287 ""
-  "main.toc" 1779591460.81455 5002 05403fe4390f68d982888504d78867a2 "pdflatex"
+  "main.toc" 1779689519.5763 5111 0374983efc131c19911230b396ecb6ce "pdflatex"
   "natbib.sty" 1779535730.92953 30639 115cd866e54f531a975d2a3455d53c3c ""
   "rotating.sty" 1779535730.92981 5306 ccdee89480a7cd576f9cc760527c2b83 ""
   "setspace.sty" 1779535730.93003 21972 cc53f66d4e62f6e032b3f45042648ee8 ""
-  "title.aux" 1779591459.09583 939 93ab767026960f9ee36a44b568787b2e "pdflatex"
+  "title.aux" 1779689517.44016 939 93ab767026960f9ee36a44b568787b2e "pdflatex"
   "title.tex" 1779554652.52076 2403 925a8cc5898eb579d78f1a3c76144e32 ""
   "vmargin.sty" 1779535730.93024 17688 5e1db5d15eef41d7f0482f9091afa8e2 ""
   (generated)

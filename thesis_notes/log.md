@@ -422,4 +422,82 @@ Reverse-direction τ deflation at high PWM (~20% faster than Phase 2.1, stable a
 
 Paste the entry into thesis_notes/log.md, commit, and confirm done.
 
+## 2026-05-25 — Model selection: A/B/C ladder quantified (analysis only, no bench)
+
+### Motivation
+The thesis defined the candidate ladder (Model A naive LTI, B static+global τ, C cascade) but
+only *argued* B/C superiority verbatim — A and B were never fit and scored as competitors
+(status-doc §6; `models/` was empty). This closes that gap with an explicit, quantified
+head-to-head, which is the "compare transfer functions and pick the winner" deliverable from
+`plan.md` §3.3/§3.6.
+
+### Method
+Notebook `notebooks/06_model_comparison.ipynb`. Phase 2.1 grid only (30 trials, single session —
+no cross-session confound). All three models simulated in PWM→RPM space with the same FOPDT core
+used in nb04/nb05; scored in-sample on the post-step window (RMSE + FIT% = 1−‖e‖/‖y−ȳ‖), split by
+direction and accel/decel. A transient window (5·τ_C, identical for all models) isolates the
+B-vs-C dynamic gain.
+- **Model A:** single proportional gain `K_A = 0.785 rpm/PWM` (LS through origin over 42 SS
+  points), single global `τ=207 ms, Td=20 ms`. No static block.
+- **Model B:** Model C's per-condition steady states + single global `τ=187 ms, Td=16 ms`.
+- **Model C:** locked per-condition FOPDT (Tables 4.1–4.2), unchanged.
+
+### Results (overall, 30 trials)
+| Model | RMSE (rpm) | FIT% | transient RMSE |
+|---|---:|---:|---:|
+| A (naive LTI) | 34.7 | −157 | 34.0 |
+| B (static + global τ) | 6.96 | 63.1 | 15.3 |
+| C (cascade) | **4.07** | **78.3** | **5.83** |
+
+Per group (RMSE A / B / C): accel-fwd 42.1/6.0/3.8, accel-rev 38.4/7.2/4.3, decel-fwd
+28.3/6.7/4.3, decel-rev 24.4/8.3/3.8. **C wins every direction × region group.**
+
+### Findings (thesis-relevant)
+1. **Model A fails outright** — negative FIT% in 3 of 4 groups (worse than predicting the mean).
+   With no static block its single gain overshoots badly at low PWM (deadzone unmodelled). The
+   straw man is now quantified, not asserted.
+2. **The static block is the dominant gain (A→B):** RMSE 34.7 → 6.96 rpm. This is the measured
+   payoff of the Chapter 3 cascade decomposition.
+3. **Region-dependent τ is a real but smaller gain (B→C):** RMSE 6.96 → 4.07 rpm, and the gain is
+   concentrated in the transient window (C 5.8 vs B 15.3 rpm) — exactly where the τ bathtub
+   predicts a single global τ must fail.
+4. C's post-step RMSE sits +0.25 rpm above the locked per-trial `rms_total` floor → the
+   comparison reproduces the locked Model C fits (no regression of Chapter 4 numbers).
+
+### Artifacts
+- Notebook: `notebooks/06_model_comparison.ipynb`
+- Processed: `data/processed/phase21_model_ladder_per_trial.csv`, `phase21_model_ladder_summary.csv`
+- Figures: `figures/20_model_ladder_overlay.png` (A/B/C over real traces, 2×2),
+  `figures/21_model_ladder_scoreboard.png` (RMSE + FIT% bars by group)
+- Models: `models/model_A.json`, `model_B.json`, `model_C.json` (populates the empty `models/`)
+- Draft section: `thesis_notes/draft_model_selection.md` (slot into Ch4 as §4.6 or open Ch5)
+
+### Scope / caveats
+In-sample structural model selection on a single session. Generalisation is the separate LOOCV
+result (Ch5); cross-session drift is §5.6. Covers the calibrated grid (PWM 160–240); extending the
+ladder to gap-fill PWM 180/220 is straightforward future work. Model A uses a through-origin gain
+(an affine variant would still lack the deadzone and remain the straw man).
+
+### Extension (same day) — full operating envelope (P2.1 + gap-fill)
+
+Extended the ladder to all 68 calibrated trials: added gap-fill accel PWM 180/220 (n=5 each) and
+decel 240→100/180/220 (n=3 each); 38 accel + 30 decel. Models A and B re-fit globally over the
+full grid; Model C uses session-appropriate per-condition params (gap-fill conditions from the
+gap-fill fit tables). Full-grid fits: K_A=0.783 rpm/PWM, A τ=196/Td=10, B τ=211/Td=2.
+
+Overall (68): A 35.0 / B 8.5 / C 4.3 rpm RMSE; FIT% −133 / 52 / 72. **By session the ordering
+A≪B<C replicates independently** — P2.1 34.8/7.1/4.1, gap-fill 35.2/9.7/4.5. The added mid-range
+points are where B is worst: accel transient RMSE vs PWM is 160→4.5, 180→18.3, 200→28.8, 220→30.5,
+240→15.8 for B vs 4.2/3.6/2.6/4.7/6.8 for C — B's single global τ (211 ms) fails hardest at the
+bathtub bottom (180–220, true τ≈95–108 ms), so broadening the grid *strengthens* B→C. B's global τ
+also rose (187→211 ms) once the slow deadzone-edge decels (τ 350–366 ms) entered the global fit.
+
+Artifacts: notebook cells appended to `notebooks/06_model_comparison.ipynb`;
+`data/processed/phase2_full_model_ladder_per_trial.csv`, `phase2_full_model_ladder_summary.csv`;
+`figures/22_model_ladder_fullgrid.png` (transient RMSE vs operating point, log scale).
+Thesis: §4.6 extended with Table 4.4 (overall + by-session) and Figure 22 (=Fig 4.8); `main.pdf`
+rebuilt to 79 pages, clean (no errors/undefined refs). Caveat: full grid mixes two sessions (as do
+Tables 4.1–4.2); the cross-session penalty falls on all three models, so the single-session Table
+4.3 stays the clean structural reference.
+
 

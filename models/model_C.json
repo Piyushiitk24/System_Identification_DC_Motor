@@ -1,0 +1,91 @@
+{
+  "name": "C",
+  "description": "cascade: static block + region/operating-point-dependent FOPDT (adopted model)",
+  "accel_conditions": [
+    {
+      "direction": "fwd",
+      "pwm": 160,
+      "K_ss": 52.076710065260706,
+      "tau_ms": 200.09368526245,
+      "Td_ms": 5.599881889256458e-12
+    },
+    {
+      "direction": "fwd",
+      "pwm": 200,
+      "K_ss": 123.525329650448,
+      "tau_ms": 95.0978334503218,
+      "Td_ms": 4.9184304303828315
+    },
+    {
+      "direction": "fwd",
+      "pwm": 240,
+      "K_ss": 209.74033626845176,
+      "tau_ms": 152.2579628599943,
+      "Td_ms": 17.057609007155907
+    },
+    {
+      "direction": "rev",
+      "pwm": 160,
+      "K_ss": -69.55332295458108,
+      "tau_ms": 191.65137877852416,
+      "Td_ms": 6.892270624858465e-12
+    },
+    {
+      "direction": "rev",
+      "pwm": 200,
+      "K_ss": -131.34854096489553,
+      "tau_ms": 81.2387872115557,
+      "Td_ms": 5.631619676755196
+    },
+    {
+      "direction": "rev",
+      "pwm": 240,
+      "K_ss": -222.55799912974012,
+      "tau_ms": 144.42753102777093,
+      "Td_ms": 23.485215153506783
+    }
+  ],
+  "decel_conditions": [
+    {
+      "direction": "fwd",
+      "start_pwm": 240,
+      "target_pwm": 0,
+      "y_init": 214.2686163405864,
+      "y_final": -0.6942329288390058,
+      "tau_ms": 172.1870756388184,
+      "Td_ms": 55.189804072860824
+    },
+    {
+      "direction": "fwd",
+      "start_pwm": 240,
+      "target_pwm": 160,
+      "y_init": 215.69741931016836,
+      "y_final": 73.7545878478096,
+      "tau_ms": 275.2537221179153,
+      "Td_ms": 14.061443132546222
+    },
+    {
+      "direction": "rev",
+      "start_pwm": 240,
+      "target_pwm": 0,
+      "y_init": -229.1088494100975,
+      "y_final": -7.055012435063473e-18,
+      "tau_ms": 189.53970223891125,
+      "Td_ms": 62.931534857292746
+    },
+    {
+      "direction": "rev",
+      "start_pwm": 240,
+      "target_pwm": 160,
+      "y_init": -231.71994445072977,
+      "y_final": -85.66146422533704,
+      "tau_ms": 306.4205109554951,
+      "Td_ms": 9.94575349587523
+    }
+  ],
+  "overall": {
+    "rmse": 4.070143403679351,
+    "fit_pct": 78.32421171438408
+  },
+  "fit_basis": "Phase 2.1 grid, 30 trials (PWM 160/200/240 accel, 240->0/160 decel, fwd+rev, 3 runs)"
+}

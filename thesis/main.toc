@@ -38,31 +38,32 @@
 \contentsline {section}{\numberline {4.3}Acceleration dynamics}{24}{section.65}%
 \contentsline {section}{\numberline {4.4}Deceleration dynamics}{26}{section.70}%
 \contentsline {section}{\numberline {4.5}Region structure: the definition of Model C}{29}{section.74}%
-\contentsline {section}{\numberline {4.6}Cross-session note}{30}{section.75}%
-\contentsline {section}{\numberline {4.7}Summary}{30}{section.76}%
-\contentsline {chapter}{\numberline {5}Validation}{33}{chapter.77}%
-\contentsline {section}{\numberline {5.1}Objective}{33}{section.78}%
-\contentsline {section}{\numberline {5.2}Method}{33}{section.79}%
-\contentsline {section}{\numberline {5.3}Within-grid validation (Phase 2.2)}{34}{section.81}%
-\contentsline {section}{\numberline {5.4}The acceleration/deceleration reproducibility asymmetry}{35}{section.84}%
-\contentsline {section}{\numberline {5.5}Warm-motor confirmation (gap-fill)}{36}{section.85}%
-\contentsline {section}{\numberline {5.6}Cross-session generalization}{37}{section.88}%
-\contentsline {section}{\numberline {5.7}Limitations of the validation}{38}{section.91}%
-\contentsline {section}{\numberline {5.8}Summary}{39}{section.92}%
-\contentsline {chapter}{\numberline {6}Closed-Loop Validation (Plan and Future Work)}{41}{chapter.93}%
-\contentsline {section}{\numberline {6.1}Objective and status}{41}{section.94}%
-\contentsline {section}{\numberline {6.2}Hypothesis}{41}{section.95}%
-\contentsline {section}{\numberline {6.3}Required artifacts}{42}{section.96}%
-\contentsline {section}{\numberline {6.4}Bench protocol}{43}{section.97}%
-\contentsline {section}{\numberline {6.5}Expected performance and risks}{43}{section.102}%
-\contentsline {section}{\numberline {6.6}Broader future work}{44}{section.103}%
-\contentsline {section}{\numberline {6.7}Summary}{45}{section.104}%
-\contentsline {chapter}{\numberline {7}Conclusion}{47}{chapter.105}%
-\contentsline {section}{\numberline {7.1}Summary of work}{47}{section.106}%
-\contentsline {section}{\numberline {7.2}Principal findings}{47}{section.107}%
-\contentsline {section}{\numberline {7.3}Limitations}{48}{section.108}%
-\contentsline {section}{\numberline {7.4}Future work}{49}{section.109}%
-\contentsline {section}{\numberline {7.5}Closing}{49}{section.110}%
+\contentsline {section}{\numberline {4.6}Model selection: the A/B/C ladder, quantified}{30}{section.75}%
+\contentsline {section}{\numberline {4.7}Cross-session note}{34}{section.81}%
+\contentsline {section}{\numberline {4.8}Summary}{34}{section.82}%
+\contentsline {chapter}{\numberline {5}Validation}{37}{chapter.83}%
+\contentsline {section}{\numberline {5.1}Objective}{37}{section.84}%
+\contentsline {section}{\numberline {5.2}Method}{37}{section.85}%
+\contentsline {section}{\numberline {5.3}Within-grid validation (Phase 2.2)}{38}{section.87}%
+\contentsline {section}{\numberline {5.4}The acceleration/deceleration reproducibility asymmetry}{39}{section.90}%
+\contentsline {section}{\numberline {5.5}Warm-motor confirmation (gap-fill)}{40}{section.91}%
+\contentsline {section}{\numberline {5.6}Cross-session generalization}{41}{section.94}%
+\contentsline {section}{\numberline {5.7}Limitations of the validation}{42}{section.97}%
+\contentsline {section}{\numberline {5.8}Summary}{43}{section.98}%
+\contentsline {chapter}{\numberline {6}Closed-Loop Validation (Plan and Future Work)}{45}{chapter.99}%
+\contentsline {section}{\numberline {6.1}Objective and status}{45}{section.100}%
+\contentsline {section}{\numberline {6.2}Hypothesis}{45}{section.101}%
+\contentsline {section}{\numberline {6.3}Required artifacts}{46}{section.102}%
+\contentsline {section}{\numberline {6.4}Bench protocol}{47}{section.103}%
+\contentsline {section}{\numberline {6.5}Expected performance and risks}{47}{section.108}%
+\contentsline {section}{\numberline {6.6}Broader future work}{48}{section.109}%
+\contentsline {section}{\numberline {6.7}Summary}{49}{section.110}%
+\contentsline {chapter}{\numberline {7}Conclusion}{51}{chapter.111}%
+\contentsline {section}{\numberline {7.1}Summary of work}{51}{section.112}%
+\contentsline {section}{\numberline {7.2}Principal findings}{51}{section.113}%
+\contentsline {section}{\numberline {7.3}Limitations}{52}{section.114}%
+\contentsline {section}{\numberline {7.4}Future work}{53}{section.115}%
+\contentsline {section}{\numberline {7.5}Closing}{53}{section.116}%
 \vspace {2em}
 \vspace {2em}
-\contentsline {chapter}{References}{51}{dummy.111}%
+\contentsline {chapter}{References}{55}{dummy.117}%

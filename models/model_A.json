@@ -1,0 +1,12 @@
+{
+  "name": "A",
+  "description": "naive global LTI, no static block (rpm = K_A * pwm), single global FOPDT",
+  "K_A_rpm_per_pwm": 0.7846214477947795,
+  "tau_ms": 207.47277589078294,
+  "Td_ms": 19.75802913613734,
+  "overall": {
+    "rmse": 34.67610321422614,
+    "fit_pct": -157.298442323034
+  },
+  "fit_basis": "Phase 2.1 grid, 30 trials (PWM 160/200/240 accel, 240->0/160 decel, fwd+rev, 3 runs)"
+}

@@ -1,0 +1,12 @@
+{
+  "name": "B",
+  "description": "static block (per-condition steady state) + single global FOPDT dynamic block",
+  "tau_ms": 187.2638905234635,
+  "Td_ms": 16.124409679323435,
+  "static_block": "per-condition steady states (shared with Model C)",
+  "overall": {
+    "rmse": 6.958480354955891,
+    "fit_pct": 63.10591825586862
+  },
+  "fit_basis": "Phase 2.1 grid, 30 trials (PWM 160/200/240 accel, 240->0/160 decel, fwd+rev, 3 runs)"
+}

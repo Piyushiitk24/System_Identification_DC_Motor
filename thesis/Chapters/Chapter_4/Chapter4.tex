@@ -145,7 +145,93 @@ The findings compose into the working model. The plant is a cascade PWM\,$\to$\,
   \item \textbf{operating point}---accel $\tau$ follows a bathtub in PWM; decel $\tau$ depends non-monotonically on the target through the deadzone.
 \end{itemize}
 
-This is Model~C, the third rung of a candidate ladder fixed at the outset: \textbf{Model~A}, a single global LTI model with no static block ($u_{\mathrm{cmd}}\to$\,rpm), used only as the straw-man baseline of \cref{chap:closedloop}; \textbf{Model~B}, the static block followed by one global dynamic block (a single gain, $\tau$, and delay); \textbf{Model~C}, the static block with a region-dependent dynamic block (this chapter); and \textbf{Model~D}, an optional friction-explicit refinement. Model~B is rejected by the ${\approx}2\times$ spread in $\tau$ across operating points; Model~C is adopted as the working model; the Coulomb/Stribeck Model~D~\citep{armstrong1994}, motivated by the PWM~=~160 and coast-to-rest residuals, is left to future work.
+This is Model~C, the third rung of a candidate ladder fixed at the outset: \textbf{Model~A}, a single global LTI model with no static block ($u_{\mathrm{cmd}}\to$\,rpm), the straw-man baseline---quantified in \sref{sec:modelsel} and reused in \cref{chap:closedloop}; \textbf{Model~B}, the static block followed by one global dynamic block (a single gain, $\tau$, and delay); \textbf{Model~C}, the static block with a region-dependent dynamic block (this chapter); and \textbf{Model~D}, an optional friction-explicit refinement. Model~B is rejected by the ${\approx}2\times$ spread in $\tau$ across operating points; Model~C is adopted as the working model; the Coulomb/Stribeck Model~D~\citep{armstrong1994}, motivated by the PWM~=~160 and coast-to-rest residuals, is left to future work. The next section makes these dismissals quantitative.
+
+\section{Model selection: the A/B/C ladder, quantified}
+\label{sec:modelsel}
+
+\sref{sec:modelc} adopted Model~C on structural grounds. This section makes the choice quantitative: rather than dismiss the simpler models by argument, all three are \emph{fitted to the same data} and scored head-to-head, so that the superiority of the cascade---and the separate contributions of its two ideas, the static block and the region-dependent dynamics---can be read off directly, forward and reverse. The comparison uses the Phase~2.1 grid (30 trials, single session, so that cross-session drift does not confound the structural question), and all three models are simulated with the identical FOPDT core used for validation (\cref{chap:validation}); differences are therefore due to model \emph{structure}, not numerics.
+
+\textbf{The three models, fit on a common footing.}
+\begin{itemize}
+  \item \textbf{Model~A (naive global LTI).} No static block: a single proportional gain maps command to speed, $\mathrm{rpm} = K_A\,\mathrm{pwm}$, followed by one global FOPDT. Fitted over all thirty trials, $K_A = 0.785$\,rpm/PWM, $\tau = 207$\,ms, $\Td = 20$\,ms.
+  \item \textbf{Model~B (static block + one global dynamic block).} The static block supplies the correct per-operating-point steady state (the deadzone and the direction-specific gain of \cref{chap:static}), but a \emph{single} global time constant governs every transition: $\tau = 187$\,ms, $\Td = 16$\,ms.
+  \item \textbf{Model~C (the cascade).} The static block plus the region- and operating-point-dependent FOPDT of Tables~\ref{tab:accel}--\ref{tab:decel}, unchanged.
+\end{itemize}
+The pairing is deliberate: \textbf{A\,$\to$\,B isolates the value of the static block}, and \textbf{B\,$\to$\,C isolates the value of region-dependent dynamics}.
+
+\begin{table}[t]
+  \centering
+  \caption{Model-ladder scoreboard on the Phase~2.1 grid: post-step RMSE (rpm) and FIT\% by region and direction, with the overall mean over all 30 trials. Model~C is best in every group, forward and reverse. Lower RMSE and higher FIT\% are better; $\mathrm{FIT\%}=0$ is no better than predicting the mean.}
+  \label{tab:ladder}
+  \small
+  \begin{tabular}{@{}llrrrrrr@{}}
+    \toprule
+    & & \multicolumn{3}{c}{RMSE (rpm)} & \multicolumn{3}{c}{FIT\%} \\
+    \cmidrule(lr){3-5}\cmidrule(lr){6-8}
+    Region & Dir & A & B & C & A & B & C \\
+    \midrule
+    accel & fwd & 42.1 & 6.0 & \textbf{3.8} & $-332$ & 56.6 & \textbf{71.8} \\
+    accel & rev & 38.4 & 7.2 & \textbf{4.3} & $-191$ & 53.9 & \textbf{73.4} \\
+    decel & fwd & 28.3 & 6.7 & \textbf{4.3} & $-13$  & 76.4 & \textbf{85.2} \\
+    decel & rev & 24.4 & 8.3 & \textbf{3.8} & $+11$  & 73.3 & \textbf{88.7} \\
+    \midrule
+    \multicolumn{2}{@{}l}{overall (30)} & 34.7 & 6.96 & \textbf{4.07} & $-157$ & 63.1 & \textbf{78.3} \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+Each trial is scored on its post-step window by RMSE and by the normalised fit $\mathrm{FIT\%} = 100\,(1 - \lVert y - \hat{y}\rVert / \lVert y - \bar{y}\rVert)$. The scoreboard is \tref{tab:ladder}; three readings follow, and they hold in both directions.
+
+\textbf{(1) Model~A fails outright.} Its FIT\% is \emph{negative} in three of the four groups---the naive model predicts the step responses worse than a horizontal line through their own mean. With no static block, its single gain cannot represent the deadzone, so it overshoots heavily at low PWM (at PWM~=~160 it predicts ${\approx}125$\,rpm against a measured ${\approx}52$). \fref{fig:ladder_overlay} shows the symptom directly: Model~A reaches the wrong level and rises with the wrong shape. This is the empirical justification---not the assumption---that a low-cost H-bridge drive cannot be treated as a single linear system.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\textwidth]{20_model_ladder_overlay}
+  \caption{Model ladder on real step responses (run~01): Model~A (naive LTI), Model~B (static\,+\,global $\tau$) and Model~C (static\,+\,region $\tau$) overlaid on the measured trace for forward/reverse acceleration and deceleration. Model~A reaches the wrong level and rises with the wrong shape; Model~C tracks both level and transient. Per-panel RMSE is annotated.}
+  \label{fig:ladder_overlay}
+\end{figure}
+
+\textbf{(2) The static block is the dominant improvement (A\,$\to$\,B).} Restoring the deadzone and the direction-specific steady-state map collapses overall RMSE from ${\approx}35$ to ${\approx}7$\,rpm and lifts FIT\% from $-157$ to $+63\,\%$. The single largest gain in the whole study comes from \emph{decomposing} the plant---the central claim of the cascade, here measured rather than asserted.
+
+\textbf{(3) Region-dependent dynamics are a real, smaller gain (B\,$\to$\,C).} Model~C lowers overall RMSE further to ${\approx}4$\,rpm and FIT\% to ${\approx}78\,\%$. The improvement is modest on the full window---which is dominated by the (shared) steady state---but it concentrates exactly where \sref{sec:accel} predicts: in the \emph{transient}. Scored on a transient window (five time constants, the same window for all three models), Model~C's error is ${\approx}5.8$\,rpm against Model~B's ${\approx}15.3$\,rpm. A single global $\tau$ is misspecified by ${\approx}2\times$ across the operating range (the bathtub), and that misspecification surfaces precisely in the rise and decay, which region scheduling repairs (\fref{fig:ladder_score}).
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\textwidth]{21_model_ladder_scoreboard}
+  \caption{A/B/C scoreboard across direction\,$\times$\,region: post-step RMSE (left, lower is better) and FIT\% (right, higher is better). Model~C wins every group; FIT\% is clipped at $-50$ for the failing Model~A.}
+  \label{fig:ladder_score}
+\end{figure}
+
+On the Phase~2.1 grid the candidate ladder therefore resolves monotonically and identically across direction and regime: $\mathrm{A} \ll \mathrm{B} < \mathrm{C}$. Model~C is the best-fit model forward and reverse, accelerating and decelerating, with the static block accounting for the bulk of the improvement and the region-dependent dynamics for the remainder, concentrated in the transient. This is in-sample \emph{structural} selection; the model's ability to predict held-out trials, and how far it transfers across sessions, are the separate subjects of \cref{chap:validation}.
+
+\textbf{Extension to the full operating envelope.} Re-running the comparison across all sixty-eight calibrated trials---adding the gap-fill acceleration points (PWM 180/220) and deceleration targets ($240\to100/180/220$), with Models~A and~B re-fit globally over the enlarged set and Model~C using each condition's session-appropriate parameters---confirms the conclusion and sharpens it (\tref{tab:ladder_full}). The ordering $\mathrm{A}\ll\mathrm{B}<\mathrm{C}$ replicates \emph{independently in each session}, so it is not an artefact of a single bench day. More tellingly, the added mid-range points are exactly where Model~B is worst: its \emph{transient} error peaks at PWM 180--220 (${\approx}18$--$31$\,rpm)---the bottom of the $\tau$ bathtub, where the true time constant is fastest (${\approx}95$--$108$\,ms) and a single global $\tau$ (${\approx}211$\,ms) is most misspecified---while Model~C holds ${\approx}3$--$5$\,rpm throughout (\fref{fig:ladder_full}). Broadening the grid thus \emph{strengthens} the case for region-dependent dynamics rather than merely extending it. The consolidated grid mixes two sessions (as do Tables~\ref{tab:accel}--\ref{tab:decel}); the small extra cross-session penalty falls on all three models alike, and the single-session result of \tref{tab:ladder} remains the clean reference.
+
+\begin{table}[t]
+  \centering
+  \caption{Full-envelope ladder (68 trials, Phase~2.1 $+$ gap-fill): mean post-step RMSE (rpm) and FIT\%, overall and by session. The $\mathrm{A}\ll\mathrm{B}<\mathrm{C}$ ordering replicates in both sessions.}
+  \label{tab:ladder_full}
+  \small
+  \begin{tabular}{@{}lrrrrrr@{}}
+    \toprule
+    & \multicolumn{3}{c}{RMSE (rpm)} & \multicolumn{3}{c}{FIT\%} \\
+    \cmidrule(lr){2-4}\cmidrule(lr){5-7}
+    Subset & A & B & C & A & B & C \\
+    \midrule
+    Phase~2.1 ($n{=}30$) & 34.8 & 7.1 & \textbf{4.1} & $-157$ & 62.8 & \textbf{78.3} \\
+    gap-fill ($n{=}38$)  & 35.2 & 9.7 & \textbf{4.5} & $-115$ & 43.1 & \textbf{67.6} \\
+    \midrule
+    overall ($n{=}68$)   & 35.0 & 8.5 & \textbf{4.3} & $-133$ & 51.8 & \textbf{72.3} \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\textwidth]{22_model_ladder_fullgrid}
+  \caption{Full operating envelope: transient RMSE versus operating point for the three models (log scale; forward and reverse averaged). Model~B's single global $\tau$ fails worst at the acceleration bathtub bottom (PWM 180--220, shaded) and at deadzone-edge deceleration targets, whereas Model~C stays flat-low across the envelope.}
+  \label{fig:ladder_full}
+\end{figure}
 
 \section{Cross-session note}
 \label{sec:xsession}

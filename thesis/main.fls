@@ -475,6 +475,19 @@ INPUT ./Pictures/18_phase2gapfill_decel_overlays.png
 INPUT ./Pictures/18_phase2gapfill_decel_overlays.png
 INPUT ./Pictures/18_phase2gapfill_decel_overlays.png
 INPUT ./Pictures/18_phase2gapfill_decel_overlays.png
+INPUT /usr/local/texlive/2025basic/texmf-dist/fonts/tfm/jknappen/ec/ecbx1095.tfm
+INPUT ./Pictures/20_model_ladder_overlay.png
+INPUT ./Pictures/20_model_ladder_overlay.png
+INPUT ./Pictures/20_model_ladder_overlay.png
+INPUT ./Pictures/20_model_ladder_overlay.png
+INPUT ./Pictures/21_model_ladder_scoreboard.png
+INPUT ./Pictures/21_model_ladder_scoreboard.png
+INPUT ./Pictures/21_model_ladder_scoreboard.png
+INPUT ./Pictures/21_model_ladder_scoreboard.png
+INPUT ./Pictures/22_model_ladder_fullgrid.png
+INPUT ./Pictures/22_model_ladder_fullgrid.png
+INPUT ./Pictures/22_model_ladder_fullgrid.png
+INPUT ./Pictures/22_model_ladder_fullgrid.png
 INPUT /usr/local/texlive/2025basic/texmf-dist/fonts/tfm/jknappen/ec/ecss1200.tfm
 INPUT ./Chapters/Chapter_5/Chapter5.tex
 INPUT ./Chapters/Chapter_5/Chapter5.tex
@@ -482,7 +495,6 @@ INPUT ./Chapters/Chapter_5/Chapter5.tex
 INPUT ./Chapters/Chapter_5/Chapter5.tex
 INPUT Chapters/Chapter_5/Chapter5.tex
 INPUT /usr/local/texlive/2025basic/texmf-dist/fonts/tfm/jknappen/ec/ecrm0600.tfm
-INPUT /usr/local/texlive/2025basic/texmf-dist/fonts/tfm/jknappen/ec/ecbx1095.tfm
 INPUT ./Pictures/12_phase22_loocv_summary.png
 INPUT ./Pictures/12_phase22_loocv_summary.png
 INPUT ./Pictures/12_phase22_loocv_summary.png
