@@ -40,11 +40,20 @@ workflow. The current analysis state is later:
   draft is `thesis_notes/draft_model_selection.md`, integrated as §4.6 in
   `thesis/Chapters/Chapter_4/Chapter4.tex`. Chapter 6 is the closed-loop
   results chapter (rewritten 2026-05-27).
-- The thesis LaTeX is built: `thesis/main.pdf` reflects Chapters 1-7 with
-  the integrated §4.6 model-selection section (Tables 4.3-4.4, Figures
-  4.6-4.8 = generated `figures/20`-`22`) and the rewritten Chapter 6 with
-  Phase 3 closed-loop results (Tables 6.1-6.2, Figures 6.1-6.2 = generated
-  `figures/23`-`24`).
+- The thesis LaTeX is built: `thesis/main.pdf` is currently 91 pages
+  (last rebuild 2026-05-27, 0 undefined refs). It reflects Chapters 1-7
+  with the integrated §4.6 model-selection section (Tables 4.3-4.4,
+  Figures 4.6-4.8 = generated `figures/20`-`22`) and the rewritten
+  Chapter 6 with Phase 3 closed-loop results (Tables 6.1-6.2, Figures
+  6.1-6.3 = generated `figures/23`-`25`). Figure 6.3 is the P2
+  zero-crossing zoom that makes the FF-discontinuity mechanism visible
+  directly (FF jump from 0 to +/-breakaway PWM at each deadzone-band
+  edge).
+- Synopsis (`thesis/main.tex` abstract block) updated to mention the
+  closed-loop outcome; Ch1 §1.3 reworded from "scoped to open-loop"
+  to "centred on... and concludes with a closed-loop test"; Ch5 §5.8
+  summary no longer says closed-loop is "deferred" — these were
+  internal-consistency fixes in commit `72c5736`.
 
 Treat `thesis_notes/log.md`, processed CSVs, and notebooks as the source of
 truth for the latest modeling state.
@@ -329,6 +338,32 @@ The Phase 3 conclusion is *not* "cascade wins" in the unrestricted sense, but
 "cascade wins for stepwise tracking, loses for slow ramps through the
 deadzone; the failure traces to the FF discontinuity at breakaway." The
 direct one-change refinement is a smoothed FF table through the deadzone.
+
+Important nuance (added in commit `72c5736`): the FF discontinuity alone is
+the *proximate* controller-side mechanism, not the full explanation. The
+pre-bench sim (same FF logic, Model C as truth plant) predicted CASC would
+*win* P2 by +4.21 rpm — opposite sign to reality. Since the controller
+code is identical between sim and bench, the sign reversal must come from
+physics the simulator does not model: the simulator's plant has a clean
+binary deadzone (`static_rpm` returns 0 for |PWM| below breakaway, FOPDT
+above) but no real low-speed friction dynamics (stiction onset,
+brush-pattern breakaway timing, coast through unreachable region). The
+FF discontinuity *interacting with* those unmodelled dynamics is the full
+mechanism. Closing the gap therefore needs both a smoother FF (controller
+side) and a richer low-speed plant model (Model D — friction-explicit,
+listed in Ch6 §6.9 future work).
+
+Ablation caveat (Ch6 §6.8 limitation iv): the BASE-vs-CASC comparison
+tests the complete model-informed controller package, not the separate
+contribution of FF vs region-scheduled PI gains. The present data are
+consistent with FF dominating (Fig 6.3 traces P2 failure to a specific
+FF event, P4's small positive matches an "FF-as-feedforward-on-clean-step"
+floor), but the contributions cannot be formally isolated without a third
+"static FF only, single global PI" ablation controller.
+
+Raw per-pair data published at `data/processed/closed_loop_pair_
+differences.csv` for direct inspection (32 rows: profile, pair_id,
+rmse_base, rmse_casc, difference, rms_pwm_base, rms_pwm_casc).
 
 Before changing these conclusions, re-run or inspect the relevant notebook and
 the corresponding processed CSV.
