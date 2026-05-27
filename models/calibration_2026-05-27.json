@@ -1,0 +1,109 @@
+{
+  "date": "2026-05-27",
+  "model_C": {
+    "name": "C_session",
+    "description": "Session-fresh Model C (cascade), fitted from on-bench calibration",
+    "accel_conditions": [
+      {
+        "direction": "fwd",
+        "pwm": 160,
+        "K_ss": 75.8958191262593,
+        "tau_ms": 237.44609041455567,
+        "Td_ms": 6.795239571743188e-15,
+        "n_runs": 3
+      },
+      {
+        "direction": "fwd",
+        "pwm": 200,
+        "K_ss": 126.13930945381169,
+        "tau_ms": 102.00196452310088,
+        "Td_ms": 4.718089439663019,
+        "n_runs": 3
+      },
+      {
+        "direction": "fwd",
+        "pwm": 240,
+        "K_ss": 213.84163233632285,
+        "tau_ms": 142.89739767477406,
+        "Td_ms": 13.822812687594253,
+        "n_runs": 3
+      },
+      {
+        "direction": "rev",
+        "pwm": 160,
+        "K_ss": -77.65042072103914,
+        "tau_ms": 226.51768329125852,
+        "Td_ms": 3.843523733194136e-13,
+        "n_runs": 3
+      },
+      {
+        "direction": "rev",
+        "pwm": 200,
+        "K_ss": -133.14014685600455,
+        "tau_ms": 91.28054329986207,
+        "Td_ms": 4.370657772252933,
+        "n_runs": 3
+      },
+      {
+        "direction": "rev",
+        "pwm": 240,
+        "K_ss": -224.30365824206294,
+        "tau_ms": 129.62909549522655,
+        "Td_ms": 16.78542621418262,
+        "n_runs": 3
+      }
+    ],
+    "decel_conditions": [
+      {
+        "direction": "fwd",
+        "start_pwm": 240,
+        "target_pwm": 0,
+        "y_init": 208.0785048430249,
+        "y_final": -0.7440578347300687,
+        "tau_ms": 184.3398054670051,
+        "Td_ms": 79.1334146627085,
+        "n_runs": 3
+      },
+      {
+        "direction": "fwd",
+        "start_pwm": 240,
+        "target_pwm": 160,
+        "y_init": 210.00833332618228,
+        "y_final": 82.63874581998431,
+        "tau_ms": 314.4888715225483,
+        "Td_ms": 36.04014923525265,
+        "n_runs": 3
+      },
+      {
+        "direction": "rev",
+        "start_pwm": 240,
+        "target_pwm": 0,
+        "y_init": -215.3611059047802,
+        "y_final": 0.7510138868370393,
+        "tau_ms": 180.21342953583152,
+        "Td_ms": 70.68680501521894,
+        "n_runs": 3
+      },
+      {
+        "direction": "rev",
+        "start_pwm": 240,
+        "target_pwm": 160,
+        "y_init": -217.36035088280275,
+        "y_final": -80.14532704577819,
+        "tau_ms": 285.08266288560776,
+        "Td_ms": 38.291462765394066,
+        "n_runs": 3
+      }
+    ]
+  },
+  "model_A": {
+    "name": "A_session",
+    "description": "Session-fresh Model A (single global LTI), no static block",
+    "K_A_rpm_per_pwm": 0.7369243481182776,
+    "tau_ms": 154.96212911646296,
+    "Td_ms": 6.616164352282203,
+    "n_trials": 18
+  },
+  "n_accel_trials_used": 18,
+  "n_decel_trials_used": 12
+}

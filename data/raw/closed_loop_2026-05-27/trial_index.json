@@ -1,0 +1,391 @@
+{
+  "date": "2026-05-27",
+  "seed": 20260527,
+  "n_pairs": 8,
+  "trials": [
+    {
+      "profile": "P1",
+      "pair_id": 5,
+      "controller": "CASC",
+      "csv": "P1_pair05_CASC.csv"
+    },
+    {
+      "profile": "P1",
+      "pair_id": 5,
+      "controller": "BASE",
+      "csv": "P1_pair05_BASE.csv"
+    },
+    {
+      "profile": "P1",
+      "pair_id": 3,
+      "controller": "BASE",
+      "csv": "P1_pair03_BASE.csv"
+    },
+    {
+      "profile": "P1",
+      "pair_id": 3,
+      "controller": "CASC",
+      "csv": "P1_pair03_CASC.csv"
+    },
+    {
+      "profile": "P1",
+      "pair_id": 4,
+      "controller": "BASE",
+      "csv": "P1_pair04_BASE.csv"
+    },
+    {
+      "profile": "P1",
+      "pair_id": 4,
+      "controller": "CASC",
+      "csv": "P1_pair04_CASC.csv"
+    },
+    {
+      "profile": "P1",
+      "pair_id": 2,
+      "controller": "CASC",
+      "csv": "P1_pair02_CASC.csv"
+    },
+    {
+      "profile": "P1",
+      "pair_id": 2,
+      "controller": "BASE",
+      "csv": "P1_pair02_BASE.csv"
+    },
+    {
+      "profile": "P1",
+      "pair_id": 1,
+      "controller": "BASE",
+      "csv": "P1_pair01_BASE.csv"
+    },
+    {
+      "profile": "P1",
+      "pair_id": 1,
+      "controller": "CASC",
+      "csv": "P1_pair01_CASC.csv"
+    },
+    {
+      "profile": "P1",
+      "pair_id": 7,
+      "controller": "BASE",
+      "csv": "P1_pair07_BASE.csv"
+    },
+    {
+      "profile": "P1",
+      "pair_id": 7,
+      "controller": "CASC",
+      "csv": "P1_pair07_CASC.csv"
+    },
+    {
+      "profile": "P1",
+      "pair_id": 6,
+      "controller": "BASE",
+      "csv": "P1_pair06_BASE.csv"
+    },
+    {
+      "profile": "P1",
+      "pair_id": 6,
+      "controller": "CASC",
+      "csv": "P1_pair06_CASC.csv"
+    },
+    {
+      "profile": "P1",
+      "pair_id": 0,
+      "controller": "CASC",
+      "csv": "P1_pair00_CASC.csv"
+    },
+    {
+      "profile": "P1",
+      "pair_id": 0,
+      "controller": "BASE",
+      "csv": "P1_pair00_BASE.csv"
+    },
+    {
+      "profile": "P2",
+      "pair_id": 4,
+      "controller": "CASC",
+      "csv": "P2_pair04_CASC.csv"
+    },
+    {
+      "profile": "P2",
+      "pair_id": 4,
+      "controller": "BASE",
+      "csv": "P2_pair04_BASE.csv"
+    },
+    {
+      "profile": "P2",
+      "pair_id": 3,
+      "controller": "BASE",
+      "csv": "P2_pair03_BASE.csv"
+    },
+    {
+      "profile": "P2",
+      "pair_id": 3,
+      "controller": "CASC",
+      "csv": "P2_pair03_CASC.csv"
+    },
+    {
+      "profile": "P2",
+      "pair_id": 7,
+      "controller": "BASE",
+      "csv": "P2_pair07_BASE.csv"
+    },
+    {
+      "profile": "P2",
+      "pair_id": 7,
+      "controller": "CASC",
+      "csv": "P2_pair07_CASC.csv"
+    },
+    {
+      "profile": "P2",
+      "pair_id": 0,
+      "controller": "BASE",
+      "csv": "P2_pair00_BASE.csv"
+    },
+    {
+      "profile": "P2",
+      "pair_id": 0,
+      "controller": "CASC",
+      "csv": "P2_pair00_CASC.csv"
+    },
+    {
+      "profile": "P2",
+      "pair_id": 2,
+      "controller": "CASC",
+      "csv": "P2_pair02_CASC.csv"
+    },
+    {
+      "profile": "P2",
+      "pair_id": 2,
+      "controller": "BASE",
+      "csv": "P2_pair02_BASE.csv"
+    },
+    {
+      "profile": "P2",
+      "pair_id": 1,
+      "controller": "BASE",
+      "csv": "P2_pair01_BASE.csv"
+    },
+    {
+      "profile": "P2",
+      "pair_id": 1,
+      "controller": "CASC",
+      "csv": "P2_pair01_CASC.csv"
+    },
+    {
+      "profile": "P2",
+      "pair_id": 6,
+      "controller": "BASE",
+      "csv": "P2_pair06_BASE.csv"
+    },
+    {
+      "profile": "P2",
+      "pair_id": 6,
+      "controller": "CASC",
+      "csv": "P2_pair06_CASC.csv"
+    },
+    {
+      "profile": "P2",
+      "pair_id": 5,
+      "controller": "CASC",
+      "csv": "P2_pair05_CASC.csv"
+    },
+    {
+      "profile": "P2",
+      "pair_id": 5,
+      "controller": "BASE",
+      "csv": "P2_pair05_BASE.csv"
+    },
+    {
+      "profile": "P3",
+      "pair_id": 1,
+      "controller": "CASC",
+      "csv": "P3_pair01_CASC.csv"
+    },
+    {
+      "profile": "P3",
+      "pair_id": 1,
+      "controller": "BASE",
+      "csv": "P3_pair01_BASE.csv"
+    },
+    {
+      "profile": "P3",
+      "pair_id": 4,
+      "controller": "CASC",
+      "csv": "P3_pair04_CASC.csv"
+    },
+    {
+      "profile": "P3",
+      "pair_id": 4,
+      "controller": "BASE",
+      "csv": "P3_pair04_BASE.csv"
+    },
+    {
+      "profile": "P3",
+      "pair_id": 0,
+      "controller": "CASC",
+      "csv": "P3_pair00_CASC.csv"
+    },
+    {
+      "profile": "P3",
+      "pair_id": 0,
+      "controller": "BASE",
+      "csv": "P3_pair00_BASE.csv"
+    },
+    {
+      "profile": "P3",
+      "pair_id": 2,
+      "controller": "BASE",
+      "csv": "P3_pair02_BASE.csv"
+    },
+    {
+      "profile": "P3",
+      "pair_id": 2,
+      "controller": "CASC",
+      "csv": "P3_pair02_CASC.csv"
+    },
+    {
+      "profile": "P3",
+      "pair_id": 6,
+      "controller": "CASC",
+      "csv": "P3_pair06_CASC.csv"
+    },
+    {
+      "profile": "P3",
+      "pair_id": 6,
+      "controller": "BASE",
+      "csv": "P3_pair06_BASE.csv"
+    },
+    {
+      "profile": "P3",
+      "pair_id": 5,
+      "controller": "BASE",
+      "csv": "P3_pair05_BASE.csv"
+    },
+    {
+      "profile": "P3",
+      "pair_id": 5,
+      "controller": "CASC",
+      "csv": "P3_pair05_CASC.csv"
+    },
+    {
+      "profile": "P3",
+      "pair_id": 7,
+      "controller": "BASE",
+      "csv": "P3_pair07_BASE.csv"
+    },
+    {
+      "profile": "P3",
+      "pair_id": 7,
+      "controller": "CASC",
+      "csv": "P3_pair07_CASC.csv"
+    },
+    {
+      "profile": "P3",
+      "pair_id": 3,
+      "controller": "BASE",
+      "csv": "P3_pair03_BASE.csv"
+    },
+    {
+      "profile": "P3",
+      "pair_id": 3,
+      "controller": "CASC",
+      "csv": "P3_pair03_CASC.csv"
+    },
+    {
+      "profile": "P4",
+      "pair_id": 6,
+      "controller": "BASE",
+      "csv": "P4_pair06_BASE.csv"
+    },
+    {
+      "profile": "P4",
+      "pair_id": 6,
+      "controller": "CASC",
+      "csv": "P4_pair06_CASC.csv"
+    },
+    {
+      "profile": "P4",
+      "pair_id": 7,
+      "controller": "CASC",
+      "csv": "P4_pair07_CASC.csv"
+    },
+    {
+      "profile": "P4",
+      "pair_id": 7,
+      "controller": "BASE",
+      "csv": "P4_pair07_BASE.csv"
+    },
+    {
+      "profile": "P4",
+      "pair_id": 4,
+      "controller": "BASE",
+      "csv": "P4_pair04_BASE.csv"
+    },
+    {
+      "profile": "P4",
+      "pair_id": 4,
+      "controller": "CASC",
+      "csv": "P4_pair04_CASC.csv"
+    },
+    {
+      "profile": "P4",
+      "pair_id": 5,
+      "controller": "BASE",
+      "csv": "P4_pair05_BASE.csv"
+    },
+    {
+      "profile": "P4",
+      "pair_id": 5,
+      "controller": "CASC",
+      "csv": "P4_pair05_CASC.csv"
+    },
+    {
+      "profile": "P4",
+      "pair_id": 1,
+      "controller": "CASC",
+      "csv": "P4_pair01_CASC.csv"
+    },
+    {
+      "profile": "P4",
+      "pair_id": 1,
+      "controller": "BASE",
+      "csv": "P4_pair01_BASE.csv"
+    },
+    {
+      "profile": "P4",
+      "pair_id": 3,
+      "controller": "BASE",
+      "csv": "P4_pair03_BASE.csv"
+    },
+    {
+      "profile": "P4",
+      "pair_id": 3,
+      "controller": "CASC",
+      "csv": "P4_pair03_CASC.csv"
+    },
+    {
+      "profile": "P4",
+      "pair_id": 0,
+      "controller": "BASE",
+      "csv": "P4_pair00_BASE.csv"
+    },
+    {
+      "profile": "P4",
+      "pair_id": 0,
+      "controller": "CASC",
+      "csv": "P4_pair00_CASC.csv"
+    },
+    {
+      "profile": "P4",
+      "pair_id": 2,
+      "controller": "BASE",
+      "csv": "P4_pair02_BASE.csv"
+    },
+    {
+      "profile": "P4",
+      "pair_id": 2,
+      "controller": "CASC",
+      "csv": "P4_pair02_CASC.csv"
+    }
+  ]
+}
