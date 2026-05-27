@@ -213,37 +213,39 @@
 \@writefile{toc}{\contentsline {paragraph}{Pre-registered tests, applied.}{50}{section*.118}\protected@file@percent }
 \@writefile{lof}{\contentsline {figure}{\numberline {6.2}{\ignorespaces Representative reference vs.\ measured trajectories, one pair per (profile, controller). Dashed = reference, solid = measured. P1 (top row): staircase tracking. P2: bidirectional ramp through deadzone; the cascade controller's measured trace deviates from the smooth reference slope around the zero crossings where its FF table changes regime. P3: reversal. P4: small-signal.}}{51}{figure.caption.119}\protected@file@percent }
 \newlabel{fig:cl-trajectories}{{6.2}{51}{Representative reference vs.\ measured trajectories, one pair per (profile, controller). Dashed = reference, solid = measured. P1 (top row): staircase tracking. P2: bidirectional ramp through deadzone; the cascade controller's measured trace deviates from the smooth reference slope around the zero crossings where its FF table changes regime. P3: reversal. P4: small-signal}{figure.caption.119}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {6.6}Interpretation: where the cascade structure helps, and where it hurts}{51}{section.120}\protected@file@percent }
-\newlabel{sec:cl-interp}{{6.6}{51}{Interpretation: where the cascade structure helps, and where it hurts}{section.120}{}}
-\@writefile{toc}{\contentsline {paragraph}{Why cascade wins on P1, P3, P4.}{52}{section*.121}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Why cascade \emph  {loses} on P2.}{52}{section*.122}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Why P4 went positive.}{53}{section*.123}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{A specific, falsifiable claim follows.}{53}{section*.124}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {6.7}Within-session drift}{53}{section.125}\protected@file@percent }
-\newlabel{sec:cl-drift}{{6.7}{53}{Within-session drift}{section.125}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {6.2}{\ignorespaces Drift over the ${\sim }2$\,h closed-loop session.}}{53}{table.caption.126}\protected@file@percent }
-\newlabel{tab:cl-drift}{{6.2}{53}{Drift over the ${\sim }2$\,h closed-loop session}{table.caption.126}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {6.8}Limitations}{54}{section.127}\protected@file@percent }
-\newlabel{sec:cl-limits}{{6.8}{54}{Limitations}{section.127}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {6.6}Interpretation: where the cascade structure helps, and where it hurts}{51}{section.121}\protected@file@percent }
+\newlabel{sec:cl-interp}{{6.6}{51}{Interpretation: where the cascade structure helps, and where it hurts}{section.121}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {6.3}{\ignorespaces P2 zero-crossing zoom (pair~00) showing the mechanism behind the cascade penalty on P2. \emph  {Top}: reference and measured RPM for BASE (red) and CASC (blue). \emph  {Middle}: BASE PWM---smooth, monotone through the deadzone. \emph  {Bottom}: CASC PWM decomposed into FF component (purple) and PI residual (green), with the breakaway PWM levels marked as dotted lines. The FF jumps at $t \approx 25$\,s (entering the deadzone) and $t \approx 28$\,s (re-emerging in reverse) are direct injections of step-like PWM into a slow-ramp tracking task; the second jump produces a ${\approx }55$\,rpm reverse overshoot that BASE does not exhibit.}}{52}{figure.caption.120}\protected@file@percent }
+\newlabel{fig:cl-p2-zoom}{{6.3}{52}{P2 zero-crossing zoom (pair~00) showing the mechanism behind the cascade penalty on P2. \emph {Top}: reference and measured RPM for BASE (red) and CASC (blue). \emph {Middle}: BASE PWM---smooth, monotone through the deadzone. \emph {Bottom}: CASC PWM decomposed into FF component (purple) and PI residual (green), with the breakaway PWM levels marked as dotted lines. The FF jumps at $t \approx 25$\,s (entering the deadzone) and $t \approx 28$\,s (re-emerging in reverse) are direct injections of step-like PWM into a slow-ramp tracking task; the second jump produces a ${\approx }55$\,rpm reverse overshoot that BASE does not exhibit}{figure.caption.120}{}}
+\@writefile{toc}{\contentsline {paragraph}{Why cascade wins on P1, P3, P4.}{52}{section*.122}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Why cascade \emph  {loses} on P2.}{53}{section*.123}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Why P4 went positive.}{54}{section*.124}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{A specific, falsifiable claim follows.}{55}{section*.125}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {6.7}Within-session drift}{55}{section.126}\protected@file@percent }
+\newlabel{sec:cl-drift}{{6.7}{55}{Within-session drift}{section.126}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {6.2}{\ignorespaces Drift over the ${\sim }2$\,h closed-loop session.}}{55}{table.caption.127}\protected@file@percent }
+\newlabel{tab:cl-drift}{{6.2}{55}{Drift over the ${\sim }2$\,h closed-loop session}{table.caption.127}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {6.8}Limitations}{56}{section.128}\protected@file@percent }
+\newlabel{sec:cl-limits}{{6.8}{56}{Limitations}{section.128}{}}
 \citation{armstrong1994}
-\@writefile{toc}{\contentsline {section}{\numberline {6.9}Future work}{55}{section.131}\protected@file@percent }
-\newlabel{sec:cl-future}{{6.9}{55}{Future work}{section.131}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {6.10}Summary}{56}{section.132}\protected@file@percent }
-\newlabel{sec:cl-summary}{{6.10}{56}{Summary}{section.132}{}}
-\@writefile{toc}{\contentsline {chapter}{\numberline {7}Conclusion}{57}{chapter.133}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {6.9}Future work}{57}{section.133}\protected@file@percent }
+\newlabel{sec:cl-future}{{6.9}{57}{Future work}{section.133}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {6.10}Summary}{58}{section.134}\protected@file@percent }
+\newlabel{sec:cl-summary}{{6.10}{58}{Summary}{section.134}{}}
+\@writefile{toc}{\contentsline {chapter}{\numberline {7}Conclusion}{59}{chapter.135}\protected@file@percent }
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
-\newlabel{chap:conclusion}{{7}{57}{Conclusion}{chapter.133}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {7.1}Summary of work}{57}{section.134}\protected@file@percent }
-\newlabel{sec:concl-summary}{{7.1}{57}{Summary of work}{section.134}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {7.2}Principal findings}{57}{section.135}\protected@file@percent }
-\newlabel{sec:concl-findings}{{7.2}{57}{Principal findings}{section.135}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {7.3}Limitations}{59}{section.136}\protected@file@percent }
-\newlabel{sec:concl-limits}{{7.3}{59}{Limitations}{section.136}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {7.4}Future work}{60}{section.137}\protected@file@percent }
-\newlabel{sec:concl-future}{{7.4}{60}{Future work}{section.137}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {7.5}Closing}{60}{section.138}\protected@file@percent }
-\newlabel{sec:concl-closing}{{7.5}{60}{Closing}{section.138}{}}
+\newlabel{chap:conclusion}{{7}{59}{Conclusion}{chapter.135}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {7.1}Summary of work}{59}{section.136}\protected@file@percent }
+\newlabel{sec:concl-summary}{{7.1}{59}{Summary of work}{section.136}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {7.2}Principal findings}{59}{section.137}\protected@file@percent }
+\newlabel{sec:concl-findings}{{7.2}{59}{Principal findings}{section.137}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {7.3}Limitations}{61}{section.138}\protected@file@percent }
+\newlabel{sec:concl-limits}{{7.3}{61}{Limitations}{section.138}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {7.4}Future work}{62}{section.139}\protected@file@percent }
+\newlabel{sec:concl-future}{{7.4}{62}{Future work}{section.139}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {7.5}Closing}{62}{section.140}\protected@file@percent }
+\newlabel{sec:concl-closing}{{7.5}{62}{Closing}{section.140}{}}
 \@writefile{toc}{\vspace  {2em}}
 \@writefile{toc}{\vspace  {2em}}
 \bibstyle{plainnat}
@@ -254,6 +256,6 @@
 \bibcite{ljung1999}{{4}{1999}{{Ljung}}{{}}}
 \bibcite{seborg2016}{{5}{2016}{{Seborg et~al.}}{{Seborg, Edgar, Mellichamp, and Doyle}}}
 \bibcite{st_l298}{{6}{2000}{{STMicroelectronics}}{{}}}
-\@writefile{toc}{\contentsline {chapter}{References}{63}{dummy.139}\protected@file@percent }
-\newlabel{References}{{7}{63}{Closing}{dummy.139}{}}
-\gdef \@abspage@last{88}
+\@writefile{toc}{\contentsline {chapter}{References}{65}{dummy.141}\protected@file@percent }
+\newlabel{References}{{7}{65}{Closing}{dummy.141}{}}
+\gdef \@abspage@last{91}

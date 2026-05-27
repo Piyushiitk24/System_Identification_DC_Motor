@@ -14,7 +14,7 @@ This thesis addresses the identification of one concrete rig: an Arduino Uno R4 
 
 ## Objectives and scope
 
-The work is scoped to **open-loop** identification and its validation:
+The work is centred on **open-loop** identification and validation, and concludes with a **closed-loop** test of whether the identified structure improves reference tracking:
 
 1. Characterise the steady-state behaviour of the rig and test the cascade decomposition by separating the driver (PWM→voltage) and motor (voltage→speed) contributions to its asymmetry.
 2. Characterise the deadzone and its hysteresis.
