@@ -21,4 +21,6 @@
 \contentsline {figure}{\numberline {5.3}{\ignorespaces Piggyback re-runs (two gap-fill runs) overlaid on the Phase~2.1 reference at the same conditions: the traces no longer coincide, exposing structured session-to-session drift.}}{42}{figure.caption.95}%
 \contentsline {figure}{\numberline {5.4}{\ignorespaces Piggyback $\tau $ and $|K_{\mathrm {ss}}|$ versus trial-order position in the gap-fill session: forward accel $\tau $ is inflated for the first ${\approx }30$\,s, then recovers as the motor warms.}}{42}{figure.caption.96}%
 \addvspace {10\p@ }
+\contentsline {figure}{\numberline {6.1}{\ignorespaces Per-profile paired RMSE difference $\text {BASE} - \text {CASC}$ with 95\,\% bootstrap CI ($n=8$ pairs). P1, P3, P4 are positive (cascade wins); P2 is negative (cascade loses). The CI bars cleanly exclude zero on all four profiles.}}{49}{figure.caption.116}%
+\contentsline {figure}{\numberline {6.2}{\ignorespaces Representative reference vs.\ measured trajectories, one pair per (profile, controller). Dashed = reference, solid = measured. P1 (top row): staircase tracking. P2: bidirectional ramp through deadzone; the cascade controller's measured trace deviates from the smooth reference slope around the zero crossings where its FF table changes regime. P3: reversal. P4: small-signal.}}{51}{figure.caption.119}%
 \addvspace {10\p@ }

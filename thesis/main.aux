@@ -185,40 +185,65 @@
 \newlabel{sec:val-limits}{{5.7}{42}{Limitations of the validation}{section.97}{}}
 \@writefile{toc}{\contentsline {section}{\numberline {5.8}Summary}{43}{section.98}\protected@file@percent }
 \newlabel{sec:val-summary}{{5.8}{43}{Summary}{section.98}{}}
-\@writefile{toc}{\contentsline {chapter}{\numberline {6}Closed-Loop Validation (Plan and Future Work)}{45}{chapter.99}\protected@file@percent }
+\@writefile{toc}{\contentsline {chapter}{\numberline {6}Closed-Loop Validation}{45}{chapter.99}\protected@file@percent }
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
-\newlabel{chap:closedloop}{{6}{45}{Closed-Loop Validation (Plan and Future Work)}{chapter.99}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {6.1}Objective and status}{45}{section.100}\protected@file@percent }
-\newlabel{sec:cl-obj}{{6.1}{45}{Objective and status}{section.100}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {6.2}Hypothesis}{45}{section.101}\protected@file@percent }
-\newlabel{sec:cl-hyp}{{6.2}{45}{Hypothesis}{section.101}{}}
+\newlabel{chap:closedloop}{{6}{45}{Closed-Loop Validation}{chapter.99}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {6.1}Objective}{45}{section.100}\protected@file@percent }
+\newlabel{sec:cl-obj}{{6.1}{45}{Objective}{section.100}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {6.2}Hypothesis (unchanged from pre-registration)}{45}{section.101}\protected@file@percent }
+\newlabel{sec:cl-hyp}{{6.2}{45}{Hypothesis (unchanged from pre-registration)}{section.101}{}}
 \citation{franklin2019}
-\@writefile{toc}{\contentsline {section}{\numberline {6.3}Required artifacts}{46}{section.102}\protected@file@percent }
-\newlabel{sec:cl-artifacts}{{6.3}{46}{Required artifacts}{section.102}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {6.4}Bench protocol}{47}{section.103}\protected@file@percent }
-\newlabel{sec:cl-protocol}{{6.4}{47}{Bench protocol}{section.103}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {6.5}Expected performance and risks}{47}{section.108}\protected@file@percent }
-\newlabel{sec:cl-perf}{{6.5}{47}{Expected performance and risks}{section.108}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {6.3}Method}{46}{section.102}\protected@file@percent }
+\newlabel{sec:cl-method}{{6.3}{46}{Method}{section.102}{}}
+\@writefile{toc}{\contentsline {paragraph}{Controllers.}{46}{section*.103}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Reference profiles.}{46}{section*.104}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Bench protocol.}{47}{section*.105}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Metrics (pre-registered).}{47}{section*.111}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Pre-registered success criteria.}{48}{section*.112}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {6.4}Calibration block: this session's Model~A and Model~C}{48}{section.113}\protected@file@percent }
+\newlabel{sec:cl-calib}{{6.4}{48}{Calibration block: this session's Model~A and Model~C}{section.113}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {6.5}Closed-loop results}{49}{section.114}\protected@file@percent }
+\newlabel{sec:cl-results}{{6.5}{49}{Closed-loop results}{section.114}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {6.1}{\ignorespaces Pre-registered paired RMSE difference per profile, $\text  {BASE} - \text  {CASC}$. Positive $=$ cascade wins. ``Sim pred.'' is the simulated $\text  {BASE} - \text  {CASC}$ from \texttt  {notebooks/07a\_closed\_loop\_sim.ipynb}, run before bench day with Model~C as truth plant.}}{49}{table.caption.115}\protected@file@percent }
+\newlabel{tab:cl-paired}{{6.1}{49}{Pre-registered paired RMSE difference per profile, $\text {BASE} - \text {CASC}$. Positive $=$ cascade wins. ``Sim pred.'' is the simulated $\text {BASE} - \text {CASC}$ from \texttt {notebooks/07a\_closed\_loop\_sim.ipynb}, run before bench day with Model~C as truth plant}{table.caption.115}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {6.1}{\ignorespaces Per-profile paired RMSE difference $\text  {BASE} - \text  {CASC}$ with 95\,\% bootstrap CI ($n=8$ pairs). P1, P3, P4 are positive (cascade wins); P2 is negative (cascade loses). The CI bars cleanly exclude zero on all four profiles.}}{49}{figure.caption.116}\protected@file@percent }
+\newlabel{fig:cl-paired-diff}{{6.1}{49}{Per-profile paired RMSE difference $\text {BASE} - \text {CASC}$ with 95\,\% bootstrap CI ($n=8$ pairs). P1, P3, P4 are positive (cascade wins); P2 is negative (cascade loses). The CI bars cleanly exclude zero on all four profiles}{figure.caption.116}{}}
+\@writefile{toc}{\contentsline {paragraph}{Three findings sit on the table, in tension with each other.}{49}{section*.117}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Pre-registered tests, applied.}{50}{section*.118}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {6.2}{\ignorespaces Representative reference vs.\ measured trajectories, one pair per (profile, controller). Dashed = reference, solid = measured. P1 (top row): staircase tracking. P2: bidirectional ramp through deadzone; the cascade controller's measured trace deviates from the smooth reference slope around the zero crossings where its FF table changes regime. P3: reversal. P4: small-signal.}}{51}{figure.caption.119}\protected@file@percent }
+\newlabel{fig:cl-trajectories}{{6.2}{51}{Representative reference vs.\ measured trajectories, one pair per (profile, controller). Dashed = reference, solid = measured. P1 (top row): staircase tracking. P2: bidirectional ramp through deadzone; the cascade controller's measured trace deviates from the smooth reference slope around the zero crossings where its FF table changes regime. P3: reversal. P4: small-signal}{figure.caption.119}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {6.6}Interpretation: where the cascade structure helps, and where it hurts}{51}{section.120}\protected@file@percent }
+\newlabel{sec:cl-interp}{{6.6}{51}{Interpretation: where the cascade structure helps, and where it hurts}{section.120}{}}
+\@writefile{toc}{\contentsline {paragraph}{Why cascade wins on P1, P3, P4.}{52}{section*.121}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Why cascade \emph  {loses} on P2.}{52}{section*.122}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Why P4 went positive.}{53}{section*.123}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{A specific, falsifiable claim follows.}{53}{section*.124}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {6.7}Within-session drift}{53}{section.125}\protected@file@percent }
+\newlabel{sec:cl-drift}{{6.7}{53}{Within-session drift}{section.125}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {6.2}{\ignorespaces Drift over the ${\sim }2$\,h closed-loop session.}}{53}{table.caption.126}\protected@file@percent }
+\newlabel{tab:cl-drift}{{6.2}{53}{Drift over the ${\sim }2$\,h closed-loop session}{table.caption.126}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {6.8}Limitations}{54}{section.127}\protected@file@percent }
+\newlabel{sec:cl-limits}{{6.8}{54}{Limitations}{section.127}{}}
 \citation{armstrong1994}
-\@writefile{toc}{\contentsline {section}{\numberline {6.6}Broader future work}{48}{section.109}\protected@file@percent }
-\newlabel{sec:cl-future}{{6.6}{48}{Broader future work}{section.109}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {6.7}Summary}{49}{section.110}\protected@file@percent }
-\newlabel{sec:cl-summary}{{6.7}{49}{Summary}{section.110}{}}
-\@writefile{toc}{\contentsline {chapter}{\numberline {7}Conclusion}{51}{chapter.111}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {6.9}Future work}{55}{section.131}\protected@file@percent }
+\newlabel{sec:cl-future}{{6.9}{55}{Future work}{section.131}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {6.10}Summary}{56}{section.132}\protected@file@percent }
+\newlabel{sec:cl-summary}{{6.10}{56}{Summary}{section.132}{}}
+\@writefile{toc}{\contentsline {chapter}{\numberline {7}Conclusion}{57}{chapter.133}\protected@file@percent }
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
-\newlabel{chap:conclusion}{{7}{51}{Conclusion}{chapter.111}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {7.1}Summary of work}{51}{section.112}\protected@file@percent }
-\newlabel{sec:concl-summary}{{7.1}{51}{Summary of work}{section.112}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {7.2}Principal findings}{51}{section.113}\protected@file@percent }
-\newlabel{sec:concl-findings}{{7.2}{51}{Principal findings}{section.113}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {7.3}Limitations}{52}{section.114}\protected@file@percent }
-\newlabel{sec:concl-limits}{{7.3}{52}{Limitations}{section.114}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {7.4}Future work}{53}{section.115}\protected@file@percent }
-\newlabel{sec:concl-future}{{7.4}{53}{Future work}{section.115}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {7.5}Closing}{53}{section.116}\protected@file@percent }
-\newlabel{sec:concl-closing}{{7.5}{53}{Closing}{section.116}{}}
+\newlabel{chap:conclusion}{{7}{57}{Conclusion}{chapter.133}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {7.1}Summary of work}{57}{section.134}\protected@file@percent }
+\newlabel{sec:concl-summary}{{7.1}{57}{Summary of work}{section.134}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {7.2}Principal findings}{57}{section.135}\protected@file@percent }
+\newlabel{sec:concl-findings}{{7.2}{57}{Principal findings}{section.135}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {7.3}Limitations}{59}{section.136}\protected@file@percent }
+\newlabel{sec:concl-limits}{{7.3}{59}{Limitations}{section.136}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {7.4}Future work}{60}{section.137}\protected@file@percent }
+\newlabel{sec:concl-future}{{7.4}{60}{Future work}{section.137}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {7.5}Closing}{60}{section.138}\protected@file@percent }
+\newlabel{sec:concl-closing}{{7.5}{60}{Closing}{section.138}{}}
 \@writefile{toc}{\vspace  {2em}}
 \@writefile{toc}{\vspace  {2em}}
 \bibstyle{plainnat}
@@ -229,6 +254,6 @@
 \bibcite{ljung1999}{{4}{1999}{{Ljung}}{{}}}
 \bibcite{seborg2016}{{5}{2016}{{Seborg et~al.}}{{Seborg, Edgar, Mellichamp, and Doyle}}}
 \bibcite{st_l298}{{6}{2000}{{STMicroelectronics}}{{}}}
-\@writefile{toc}{\contentsline {chapter}{References}{55}{dummy.117}\protected@file@percent }
-\newlabel{References}{{7}{55}{Closing}{dummy.117}{}}
-\gdef \@abspage@last{79}
+\@writefile{toc}{\contentsline {chapter}{References}{63}{dummy.139}\protected@file@percent }
+\newlabel{References}{{7}{63}{Closing}{dummy.139}{}}
+\gdef \@abspage@last{88}

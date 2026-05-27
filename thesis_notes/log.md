@@ -501,3 +501,107 @@ Tables 4.1–4.2); the cross-session penalty falls on all three models, so the s
 4.3 stays the clean structural reference.
 
 
+
+
+## 2026-05-27 — Phase 3 bench day (closed-loop validation)
+
+### Pre-registration freeze (2026-05-26)
+Pre-registered hypothesis, metrics, success criteria, and statistical procedure committed in
+`notebooks/07a_closed_loop_sim.ipynb` Cell G and persisted to
+`data/processed/phase3_preregistration.json` (SHA-256
+`da94c83d3b57bda80cf3a137740ed7441f41df2424da909098a2d63602707669`).
+Pre-bench sim (Model C as ground-truth plant) predicted BASE−CASC RMSE of +2.20, +4.21, +9.15,
++0.92 rpm on P1/P2/P3/P4 respectively.
+
+### Stage 0 → Stage 1 → Stage 2 (single working day, 2026-05-27)
+
+Stage 0 (software, no bench): built `motor_id/{cascade_sim,controllers,model_io,metrics,
+calibration}.py`. Cascade simulator regression-tested against the locked notebook 04/05
+single-transition simulator: max |err| 2.8e-14 rpm across all six Phase 2.1 accel conditions (gate
+1e-6, passed by 8 orders of magnitude).
+
+Stage 1 (firmware smoke): built `src_closedloop/main.cpp` + `platformio_closedloop.ini`. Smoke
+test on P3 reversal with placeholder gains: BASE 19.85 rpm RMSE, CASC 13.84 rpm RMSE, 10.0 ms loop
+period locked, telemetry parses through `split_log.py` unchanged. CASC steady-state PWM ±187 at
+±100 rpm matches the FF table lookup, confirming firmware FF parser. `src/main.cpp` untouched
+throughout.
+
+Stage 2 (bench): one 2026-05-27 session, ~75 min motor-on. 55 s warm-up; 30-trial CALIB (18/18
+accel fits OK, 12/12 decel fits OK); on-laptop refit gave session Model A `K_A=0.737 rpm/PWM,
+τ=155 ms, T_d=6.6 ms` — meaningfully different from locked Phase 2.1 (`0.785 / 207 / 19.8`),
+confirming §5.6's "calibrate in situ" recommendation has teeth. Frozen IMC gains uploaded;
+64 paired closed-loop trials (P1×8 + P2×8 + P3×8 + P4×8) × {BASE, CASC} with explicit pair IDs,
+seed 20260527; 6 drift-check trials at end.
+
+### Pre-registered tests, applied (n=8 paired per profile)
+
+| Profile | median(BASE−CASC) | 95 % CI | Wilcoxon p (greater) | Sim pred. |
+|---|---:|---:|---:|---:|
+| P1 (staircase)        | +2.82 rpm | [+2.74, +2.93] | 0.004 | +2.20 |
+| P2 (deadzone ramp)    | −1.13 rpm | [−1.20, −0.97] | 1.000 | +4.21 |
+| P3 (reversal)         | +5.15 rpm | [+5.04, +5.40] | 0.004 | +9.15 |
+| P4 (small-signal)     | +1.00 rpm | [+0.86, +1.22] | 0.004 | +0.92 |
+
+Pooled MAD-standardised paired-difference Wilcoxon over P1+P2+P3: p = 3 × 10⁻⁴ (n = 24 pooled).
+
+**Primary criterion: FAIL** — median(BASE−CASC)>0 required on each of P1, P2, P3, but P2 is
+strongly negative. **Strong criterion: FAIL** — primary required, and primary fails. **Fairness
+gate (cascade RMS PWM ≤ 1.5× baseline): PASS** — ratios 0.99–1.04 across all four profiles.
+
+### Headline interpretation
+
+Cascade clearly wins on P1, P3, P4 (each CI cleanly excludes zero) and clearly loses on P2 (CI
+excludes zero on the wrong side). P3 (reversal) shows the largest single advantage at +5.22 rpm
+mean, exactly as the hypothesis predicted for the regime where the single-LTI baseline is most
+misspecified. The P2 sign reversal vs sim (+4.21 → −1.09) is a real counter-example to the
+universal cascade hypothesis.
+
+Mechanism (interpreted in §6.6): the inverse-static FF table saturates at the breakaway PWM for
+|ref| ≤ 50 rpm (since the motor cannot sustain steady speeds below breakaway), producing a
+slope discontinuity at the breakaway-RPM edge. On a slow ramp this discontinuity is a small
+step-like PWM kick at each zero crossing, breaking the smoothness the baseline PI integrator
+would produce by accumulating gradually. P4's small but real positive result (≈1 rpm with CI
+excluding zero) shows the FF gives a general settling-time benefit on step references even in
+the linear regime, not just the deadzone/extremes/reversal benefit the hypothesis named.
+
+The pre-registered binary "did cascade win" answer is **no, not universally** — the loss is
+concentrated entirely in P2. The thesis bottom line is therefore sharper than a clean universal
+win: cascade is the right closed-loop structure for stepwise tracking; the *wrong* structure,
+without modification, for slow ramps through the deadzone. The one-change refinement is a
+smoothed FF table through the deadzone region.
+
+### Drift check (start vs end of session, ~2 h apart)
+
+| Direction | ΔK_ss | Δτ |
+|---|---:|---:|
+| fwd 200 | +6.7 % | −5.2 % |
+| rev 200 | +3.7 % | −2.5 % |
+
+L298N junction warming: driver saturation drop falls slightly so the same PWM gives a few % more
+RPM and a few % faster transient. Forward drift larger than reverse, as in §3.8. Negligible at
+within-pair timescales (pair members run within seconds of each other); confirms the
+recalibrate-in-situ rule for any future session.
+
+### Artifacts
+
+Code: `motor_id/{cascade_sim,controllers,model_io,metrics,calibration}.py`,
+`src_closedloop/main.cpp`, `platformio_closedloop.ini`, `scripts/{smoke_closed_loop.py,
+bench_session.py}`. Notebooks: `07a_closed_loop_sim.ipynb` (sim + pre-registration freeze),
+`07b_closed_loop_results.ipynb` (bench analysis + pre-registered tests).
+
+Models: `models/calibration_2026-05-27.json` (session-fresh A and C), `models/closed_loop_
+gains_2026-05-27.json` (frozen IMC gains + FF table).
+
+Data: `data/raw/closed_loop_2026-05-27/{calib_trials,closed_loop_trials,drift_trials}/`
+(30 + 64 + 6 CSVs), `data/raw/closed_loop_2026-05-27/trial_index.json`,
+`data/raw/serial_logs/2026-05-27_phase3_session.log`. Processed:
+`data/processed/{closed_loop_metrics_per_trial.csv, closed_loop_summary.json,
+closed_loop_drift_check.csv}`.
+
+Figures: `figures/23_closed_loop_paired_diff.png` (per-profile RMSE diff with 95 % bootstrap CI),
+`figures/24_closed_loop_trajectories.png` (representative trajectories per profile per
+controller).
+
+Thesis: chapter drafts `draft_ch6_closedloop.md` rewritten from "plan" to results; `draft_ch1` and
+`draft_ch7` updated to drop deferred-framing and to include Phase 3 findings. LaTeX
+`thesis/Chapters/Chapter_{1,6,7}` mirrored. `main.pdf` rebuild pending.

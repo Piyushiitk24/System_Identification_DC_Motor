@@ -1,15 +1,15 @@
-% Chapter 6 — Closed-Loop Validation (Plan and Future Work)
+% Chapter 6 — Closed-Loop Validation (rewritten 2026-05-27 from bench results)
 % Converted from thesis_notes/draft_ch6_closedloop.md
-\chapter{Closed-Loop Validation (Plan and Future Work)}
+\chapter{Closed-Loop Validation}
 \label{chap:closedloop}
 \lhead{\emph{Closed-Loop Validation}}
 
-\section{Objective and status}
+\section{Objective}
 \label{sec:cl-obj}
 
-The open-loop identification of Chapters~\ref{chap:hardware}--\ref{chap:validation} produced a validated cascade model (Model~C) and quantified its predictive error within the calibration grid. The natural culmination of the thesis is to show that this model is not merely descriptive but \emph{useful}: that a controller designed against Model~C tracks a reference better than one designed against a naive single-LTI model of the same plant. \textbf{This closed-loop validation has not yet been carried out.} This chapter therefore states the hypothesis precisely, enumerates the software and firmware artifacts the experiment requires, specifies a bench protocol that respects the session-drift findings of \cref{chap:validation}, and predicts the performance the open-loop residuals imply. It is written as an actionable plan rather than a results chapter.
+Chapters~\ref{chap:hardware}--\ref{chap:validation} produced and within-session-validated the cascade model (Model~C). This chapter tests whether that structural choice translates into measurably better \emph{closed-loop} tracking on the real rig. The benchmark is \textbf{Model~A}---the naive global LTI model the cascade was meant to replace---fit from the same in-session calibration data and used to design a matched baseline controller. The test is \textbf{pre-registered}: metrics, success criteria, and statistical procedure were committed (with a SHA-256 hash recorded) before any closed-loop trial was run, so the result that follows is honest in the strict sense.
 
-\section{Hypothesis}
+\section{Hypothesis (unchanged from pre-registration)}
 \label{sec:cl-hyp}
 
 \begin{quote}
@@ -17,52 +17,161 @@ The open-loop identification of Chapters~\ref{chap:hardware}--\ref{chap:validati
 A controller informed by the cascade model (direction-specific static block, region- and operating-point-dependent FOPDT dynamics) achieves lower reference-tracking error than a controller informed by a single global LTI model fitted to the same plant, with the largest advantage near the deadzone, at the operating-point extremes, and during direction reversals---the regimes where the single-LTI model is most misspecified.
 \end{quote}
 
-The hypothesis is falsifiable: if the cascade-aware controller does not beat the global-LTI baseline outside measurement noise, the additional model complexity is not justified for control, and that too is a publishable result.
+The hypothesis is falsifiable in both directions: a null (no advantage) is publishable, and a \emph{negative} result on a specific profile (cascade loses) is sharper still, because it constrains where the cascade structure is and is not the right design.
 
-\section{Required artifacts}
-\label{sec:cl-artifacts}
+\section{Method}
+\label{sec:cl-method}
 
-Three things must be built before any closed-loop trial can be run.
+\paragraph{Controllers.} Both controllers are discrete PI with anti-windup, $\pm 255$\,PWM clamp, and 30-counts-per-sample output slew limit; identical control-loop arithmetic in firmware (\texttt{src\_closedloop/main.cpp}) and in the Python simulator (\texttt{motor\_id/controllers.py}).
+\begin{itemize}
+  \item \textbf{BASE}\,---\,one global PI gain set computed from Model~A by IMC~\citep{franklin2019} with closed-loop time-constant $\lambda = 200$\,ms. No feedforward, no region or direction split.
+  \item \textbf{CASC}\,---\,four PI gain sets (forward/reverse $\times$ accel/decel), each computed from Model~C's parameters at the canonical PWM\,=\,200 operating point by the \emph{same} IMC routine. Inverse-static feedforward from a five-point lookup table (RPM $\in \{50, 80, 100, 150, 200\}$ per direction, with the 50-rpm entry pinned at the breakaway PWM since the motor cannot sustain steady speeds below breakaway).
+\end{itemize}
+The same \texttt{compute\_imc\_gains}$(K, \tau, T_d, \lambda)$ function tunes both controllers; neither was hand-adjusted on the bench. Gains were frozen from the in-session calibration before any closed-loop trial began and persisted to \texttt{models/closed\_loop\_gains\_2026-05-27.json}.
 
-\textbf{(1) A multi-transition / feedback-capable simulator.} The current simulator handles only a \emph{single} command transition---sufficient for open-loop step validation, insufficient for a closed loop where the command changes every sample. A v2 simulator must (i) accept an arbitrary command trajectory, (ii) select the accel/decel region and operating-point parameters per transition, (iii) handle re-acceleration mid-decay and direction reversal, and (iv) interpolate parameters between calibrated grid points (the bathtub in accel $\tau$ and the target-dependence in decel $\tau$ make naive interpolation unsafe near the deadzone). It should be \textbf{extracted into a reusable, version-controlled module}, separate from the analysis notebooks, so that firmware-in-the-loop and pure-simulation runs share one implementation.
+\paragraph{Reference profiles.} Four profiles, defined as time-stamped breakpoint tables compiled into the firmware:
+\begin{itemize}
+  \item \textbf{P1}\,---\,bidirectional staircase: $0 \to \pm 80 \to \pm 150 \to \pm 200 \to \pm 150 \to \pm 80 \to 0$ in each direction, 3\,s holds, 39\,s total. Exercises the deadzone edge holds at 80\,rpm in both polarities.
+  \item \textbf{P2}\,---\,bidirectional ramp through deadzone: linear ramp $0 \to +150$ over 10\,s, hold 5\,s, ramp $+150 \to 0$, hold 3\,s, ramp $0 \to -150$, hold 5\,s, ramp $-150 \to 0$. 53\,s total. Crosses zero slowly twice.
+  \item \textbf{P3}\,---\,reversal: $+100$ hold 3\,s $\to$ ramp to $-100$ over 4\,s $\to$ hold $-100$ for 3\,s. 10\,s total. Tests cross-zero behaviour.
+  \item \textbf{P4}\,---\,small-signal negative control: $150 \to 160 \to 150 \to 160$\,rpm, 2\,s holds. 8\,s total. In the linear regime above the deadzone where neither model is misspecified.
+\end{itemize}
 
-\textbf{(2) Closed-loop firmware.} The active firmware is the open-loop step sequencer (\sref{sec:firmware}); a controller variant is required---at minimum a velocity PID~\citep{franklin2019} on the encoder-derived RPM, with the same 10\,ms loop rate and telemetry format so the analysis pipeline is reused unchanged. Anti-windup and an explicit deadzone-feedforward term (using the breakaway/dropout thresholds of \sref{sec:deadzone}) are advisable given the plant's static nonlinearity.
-
-\textbf{(3) A baseline model to beat.} The naive comparator---\textbf{Model~A}, a single global LTI model (one gain, one time constant, no deadzone, no region split)---must be fitted from the same calibration data and used to design a matched baseline controller. Without this baseline the central claim cannot be evaluated.
-
-\section{Bench protocol}
-\label{sec:cl-protocol}
-
-The single most important protocol requirement follows directly from \sref{sec:xsession-val}: \textbf{Phase~2.1 parameters must not be reused as ground truth for a later session.} The cross-session drift---a cold-start warm-up transient, a persistent low-speed decel slowdown, and a persistent reverse high-PWM speed-up---is large enough (especially for deceleration) to invalidate stale calibration. The protocol must therefore be self-contained within one session:
+\paragraph{Bench protocol.} A single 2026-05-27 session, ${\approx}2$\,h motor-on:
 \begin{enumerate}
-  \item \textbf{In-session calibration block.} At session start, re-run the open-loop step grid (the original Phase~2.1 conditions, ideally extended with the gap-fill PWMs) and re-fit Model~C from \emph{that} session's data. This also yields a fresh global-LTI baseline.
-  \item \textbf{Warm-up margin.} Discard or down-weight the first ${\approx}30$\,s of operation, where forward accel $\tau$ is inflated (\sref{sec:warm}).
-  \item \textbf{Closed-loop trials.} With both controllers (cascade-aware and baseline) designed against the same-session calibration, run matched reference profiles: setpoint steps across the operating range, a slow ramp through the deadzone in both directions, direction reversals, and a small load/disturbance if a brake is available.
-  \item \textbf{Logging.} Record ambient temperature throughout (not logged in earlier sessions, status-doc \S5) and, if possible, a thermistor on the L298N to correlate driver-side drift.
+  \item \textbf{Warm-up} (${\sim}55$\,s, no logged trials). Forward PWM\,=\,200 for 20\,s, off 5\,s, reverse PWM\,=\,200 for 20\,s, off 10\,s. Discharges the cold-start transient identified in \sref{sec:warm}.
+  \item \textbf{In-session calibration}\,---\,30 open-loop trials: accel PWM~$\in \{160, 200, 240\} \times \{\text{fwd}, \text{rev}\} \times 3$ + decel $240 \to \{0, 160\} \times \{\text{fwd}, \text{rev}\} \times 3$.
+  \item \textbf{On-laptop refit}\,---\,FOPDT fits per condition; Model~A globally; IMC gains and FF table built and persisted; uploaded to firmware via the \texttt{GAINS\_BASE}/\texttt{GAINS\_CASC}/\texttt{FF\_FWD}/\texttt{FF\_REV} commands. \textbf{Gains frozen from this point.}
+  \item \textbf{Closed-loop trials}\,---\,$n=8$ paired runs per (profile $\times$ controllers). 64 trials total. Pair order randomised within profile (seed $= 20260527$); within each pair the controller order (BASE-first or CASC-first) randomised. Every trial has an explicit pair ID for the paired analysis.
+  \item \textbf{Drift check}\,---\,fwd/rev PWM\,=\,200 accel $\times 3$ each at session end, to bound mid-session drift.
 \end{enumerate}
 
-Predictions for the simulator use the same-session calibration, never the historical tables of Chapters~\ref{chap:dynamic}--\ref{chap:validation}.
+\paragraph{Metrics (pre-registered).} Per trial: \texttt{rmse\_full} (post-warm-up window), \texttt{rmse\_deadzone} (samples where $|{\text{ref}}| \le 80$\,rpm), \texttt{rmse\_transient} ($5\tau$ after each setpoint change), settling time, overshoot, steady-state error, RMS PWM. The headline metric is \texttt{rmse\_full}. Headline statistic is the per-pair difference $\mathrm{RMSE}(\text{BASE}) - \mathrm{RMSE}(\text{CASC})$.
 
-\section{Expected performance and risks}
-\label{sec:cl-perf}
+\paragraph{Pre-registered success criteria.} \emph{Primary}: $\mathrm{median}(\text{BASE} - \text{CASC}) > 0$ on each of P1, P2, P3 \textbf{AND} pooled within-profile-MAD-standardised paired-difference one-sided Wilcoxon $p < 0.10$ on the $\{$P1, P2, P3$\}$ pool. \emph{Strong}: Primary holds \textbf{AND} 95\,\% paired-bootstrap CI of $(\text{BASE} - \text{CASC})$ excludes zero on $\ge 2$ of P1, P2, P3. \emph{Fairness gate}: cascade RMS PWM $\le 1.5 \times$ baseline RMS PWM on every profile (a controller cannot ``win by hammering harder'').
 
-The open-loop residuals bound what closed-loop tracking can achieve. The within-session reproducibility floor of ${\approx}3$--$5$\,rpm (\sref{sec:val-summary}) is the best steady-state tracking error a perfect controller could reach on this rig; the cascade-aware controller should approach it across the operating range, while the global-LTI baseline should fall short specifically near the deadzone and at the $\tau$ extremes. Two risks are known in advance: cold-start transients will degrade tracking for the first ${\approx}30$\,s until the motor warms, and reverse stops through the deadzone (the noisy $240\to100$ condition of \sref{sec:decel} and \sref{sec:warm}) will show elevated, partly irreducible stochasticity. Both should be reported rather than engineered away, as they are properties of the plant.
+\section{Calibration block: this session's Model~A and Model~C}
+\label{sec:cl-calib}
 
-\section{Broader future work}
+The 30 open-loop calibration trials at session start gave 18/18 accel fits and 12/12 decel fits OK. The on-laptop refit yielded:
+\begin{itemize}
+  \item \textbf{Model~A (this session):} $K_A = 0.737$\,rpm/PWM, $\tau = 155$\,ms, $T_d = 6.6$\,ms.
+  \item \textbf{Model~C (this session):} six accel conditions (PWM 160/200/240 $\times$ fwd/rev) and four decel conditions ($240 \to 0/160 \times$ fwd/rev) with parameter values close to but not identical to the locked Phase~2.1 numbers of Tables~\ref{tab:accel}--\ref{tab:decel}.
+\end{itemize}
+The session Model~A's $\tau$ (155\,ms) is about 25\,\% below the locked Phase~2.1 value (207\,ms) and $T_d$ (6.6\,ms) is about a third of it (20\,ms). This is exactly the kind of cross-session drift \sref{sec:xsession-val} warned about, and it directly validated the in-session-calibration protocol: a closed-loop session that had reused the locked Phase~2.1 Model~A would have designed a 30\,\%-overdamped baseline controller. The session-fresh fit gave both controllers parameters that actually describe today's motor.
+
+\section{Closed-loop results}
+\label{sec:cl-results}
+
+The paired RMSE results, with 95\,\% bootstrap CI and one-sided Wilcoxon $p$-value, are in Table~\ref{tab:cl-paired} (Figure~\ref{fig:cl-paired-diff}).
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lrrrrrr}
+\toprule
+Profile & $n$ & median (rpm) & mean (rpm) & 95\,\% CI & $p$ & sim pred. \\
+\midrule
+\textbf{P1} (staircase)        & 8 & $+2.82$ & $+2.83$ & $[+2.74, +2.93]$ & $0.004$ & $+2.20$ \\
+\textbf{P2} (deadzone ramp)    & 8 & $-1.13$ & $-1.09$ & $[-1.20, -0.97]$ & $1.000$ & $+4.21$ \\
+\textbf{P3} (reversal)         & 8 & $+5.15$ & $+5.22$ & $[+5.04, +5.40]$ & $0.004$ & $+9.15$ \\
+\textbf{P4} (small-signal)     & 8 & $+1.00$ & $+1.03$ & $[+0.86, +1.22]$ & $0.004$ & $+0.92$ \\
+\bottomrule
+\end{tabular}
+\caption{Pre-registered paired RMSE difference per profile, $\text{BASE} - \text{CASC}$. Positive $=$ cascade wins. ``Sim pred.'' is the simulated $\text{BASE} - \text{CASC}$ from \texttt{notebooks/07a\_closed\_loop\_sim.ipynb}, run before bench day with Model~C as truth plant.}
+\label{tab:cl-paired}
+\end{table}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.7\linewidth]{23_closed_loop_paired_diff.png}
+\caption{Per-profile paired RMSE difference $\text{BASE} - \text{CASC}$ with 95\,\% bootstrap CI ($n=8$ pairs). P1, P3, P4 are positive (cascade wins); P2 is negative (cascade loses). The CI bars cleanly exclude zero on all four profiles.}
+\label{fig:cl-paired-diff}
+\end{figure}
+
+\paragraph{Three findings sit on the table, in tension with each other.}
+
+\textbf{(1) Cascade wins decisively on step-change profiles.} P1 ($+2.83$\,rpm), P3 ($+5.22$\,rpm), and P4 ($+1.03$\,rpm) all show statistically clear cascade advantages with CIs cleanly excluding zero ($p \approx 0.004$ each, the minimum achievable at $n=8$ by signed-rank). P3---the reversal---is the largest single effect, exactly as the hypothesis predicted: the regime in which the baseline single-LTI model is most misspecified is also the regime in which the cascade wins by the largest margin. Per-pair run-to-run noise is small (sd of differences $0.14$--$0.29$\,rpm), so the effects are stable across the eight repetitions.
+
+\textbf{(2) Cascade \emph{loses} on the slow ramp profile.} P2 shows a per-pair median difference of $-1.13$\,rpm---the cascade controller tracks the bidirectional ramp through the deadzone \emph{worse} than the baseline. The CI $[-1.20, -0.97]$ cleanly excludes zero on the wrong side; the one-sided $p$-value for ``cascade better'' is essentially $1.0$. The simulation predicted the \emph{opposite} sign ($+4.21$\,rpm) on this profile, so this is not just an ``advantage smaller than expected''---it is a sign reversal, and a genuine counter-example to the universal version of the hypothesis. The mechanism is interpreted in \sref{sec:cl-interp}.
+
+\textbf{(3) The negative control did not behave as a negative control.} P4 was designed as a small-signal test in the linear regime (RPM steps of 10, far above the deadzone) where neither model is misspecified and no cascade advantage was expected. In fact, the cascade wins by ${\approx}1$\,rpm with a CI excluding zero. The effect is small in absolute terms but real. The interpretation is that the inverse-static feedforward is providing a benefit \emph{even where the model assumes none}, by getting the steady-state PWM nearly right and letting the PI loop spend its action on the small residual rather than on coarse seeking.
+
+\paragraph{Pre-registered tests, applied.} \emph{Primary}: condition~1 (median $> 0$ on each of P1, P2, P3) \textbf{fails} because P2's median is negative. Condition~2 (pooled MAD-standardised Wilcoxon $p < 0.10$) passes overwhelmingly ($p = 3 \times 10^{-4}$ on $n=24$ pooled paired differences). Therefore primary \textbf{fails}. \emph{Strong}: requires primary plus $\ge 2$ of P1/P2/P3 with CIs excluding zero---we have CIs excluding zero on P1 and P3 (2 of 3), but primary failing means strong also \textbf{fails}. \emph{Fairness gate}: cascade RMS PWM is $0.99$--$1.04 \times$ baseline across all four profiles---\textbf{PASS}. The cascade is not winning anywhere by hammering harder.
+
+The pre-registered binary ``did cascade win'' answer is therefore \textbf{no, not universally}---and the reason is concentrated entirely in profile P2.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\linewidth]{24_closed_loop_trajectories.png}
+\caption{Representative reference vs.\ measured trajectories, one pair per (profile, controller). Dashed = reference, solid = measured. P1 (top row): staircase tracking. P2: bidirectional ramp through deadzone; the cascade controller's measured trace deviates from the smooth reference slope around the zero crossings where its FF table changes regime. P3: reversal. P4: small-signal.}
+\label{fig:cl-trajectories}
+\end{figure}
+
+\section{Interpretation: where the cascade structure helps, and where it hurts}
+\label{sec:cl-interp}
+
+The pattern of wins and losses is consistent, internally, and informative. The cascade controller differs from the baseline in two ways: (i) it has a per-direction inverse-static feedforward that supplies the steady-state PWM corresponding to the current reference, and (ii) it switches between accel and decel PI gain sets according to whether the speed magnitude is growing or shrinking. The feedforward is the structurally larger of the two changes---it accounts for almost all of the FF-table magnitude at steady state---and is also the most plausible source of the P2 anomaly.
+
+\paragraph{Why cascade wins on P1, P3, P4.} Each of these profiles asks the controller to \emph{step} the reference. A step demands instant action: an integrator-only PI builds output slowly, while a feedforward jumps the PWM to the right neighbourhood immediately. Even on a small step (P4), this is worth ${\approx}1$\,rpm in tracking, because settling time, not steady-state offset, dominates the RMSE on a short profile. On P3 (large reversal), the same effect compounds with the change of direction: the cascade's FF flips sign with the reference and is already producing the right-magnitude PWM in the new direction when the encoder has not yet seen the reversal, while the baseline must wait for accumulated integrator error to drive its output through zero. The advantage at the reversal is structural, not numerical, and matches the predicted shape.
+
+\paragraph{Why cascade \emph{loses} on P2.} The bidirectional ramp visits every speed between $-150$ and $+150$\,rpm slowly (at 15\,rpm/s). When the reference passes through magnitudes below the steady-state breakaway speed (${\approx}55$\,rpm), the cascade's FF table---which is constructed to saturate at the breakaway PWM for these unreachable steady speeds---produces a step-like PWM kick on either side of zero. Concretely, as $\text{ref}$ rises from 0 toward $+50$\,rpm, $\mathtt{ff\_lookup}(\text{ref})$ jumps from 0 to the breakaway PWM (${\approx}168$\,PWM in this session); as $\text{ref}$ continues toward 80\,rpm, FF interpolates smoothly. On a ramp, that jump is a small but real injection of step-like control action at each zero crossing, plus a discontinuity in the \emph{slope} of the FF curve at the breakaway-RPM edge of the table. The baseline controller, having no FF, accumulates integrator error gradually as the ramp passes through deadzone speeds and produces a smoothly increasing PWM---a control signal that happens to match the \emph{slow} reference better than the cascade's piecewise-constant FF.
+
+This is not a bug in the cascade design; it is a property of the modelling choice. The static block of Model~C is \emph{inherently} discontinuous at the deadzone edge, because the deadzone is a real physical phenomenon (no PWM below breakaway produces steady motion). Any FF derived from inverting that static block will inherit a discontinuity in its slope at the breakaway-RPM. A controller that uses such a FF will get a benefit on \emph{step} references that need to cross the deadzone quickly, and a penalty on \emph{ramp} references whose smoothness is broken by the FF jump.
+
+\paragraph{Why P4 went positive.} The same FF mechanism that helps with steps helps with small steps. P4's 10-rpm steps are in the linear region, well above the deadzone, where the FF is smooth and well-conditioned; the FF gets the steady-state PWM essentially right (within a couple of PWM counts), and the PI only has to handle the transient. The 1-rpm advantage is the absolute value of ``settling-time benefit on a clean step'' with no deadzone effects in play. It is consistent with---and forms an empirical floor for---the cascade-FF benefit on a step regardless of where in the operating range.
+
+\paragraph{A specific, falsifiable claim follows.} The cascade structure as designed is the \emph{right} controller for closed-loop tracking when the reference is a sequence of stepwise setpoints (with or without deadzone crossings) or a reversal. It is the \emph{wrong} controller---without modification---for slow ramps through the deadzone, where the FF discontinuity at the breakaway edge becomes a liability. A future refinement of the cascade controller for ramp-heavy references would smooth the FF table through the deadzone (for example by tapering linearly from 0 to breakaway PWM over the unreachable-RPM region, accepting a transient deadzone-overshoot in exchange for ramp continuity).
+
+\section{Within-session drift}
+\label{sec:cl-drift}
+
+The end-of-session drift check (six trials, fwd/rev PWM\,=\,200 accel $\times 3$ each) gave:
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lrrrrr}
+\toprule
+Direction & PWM & $\Delta K_{ss}$ vs.\ start & $\Delta \tau$ vs.\ start & $n_{\text{start}}$ & $n_{\text{end}}$ \\
+\midrule
+fwd & 200 & $+6.7\,\%$ & $-5.2\,\%$ & 3 & 3 \\
+rev & 200 & $+3.7\,\%$ & $-2.5\,\%$ & 3 & 3 \\
+\bottomrule
+\end{tabular}
+\caption{Drift over the ${\sim}2$\,h closed-loop session.}
+\label{tab:cl-drift}
+\end{table}
+
+$K_{ss}$ rises ${\approx}4$--$7\,\%$ and $\tau$ falls ${\approx}3$--$5\,\%$ over the session, with forward drift larger than reverse. The direction of $K_{ss}$ drift (higher steady speed for the same PWM at session end) is consistent with the L298N saturation drop falling as junction temperature rises---the driver delivers slightly more motor voltage as it warms, so the same PWM gives slightly more RPM. The $\tau$ contraction (faster transient) is the same effect on a different axis: more delivered voltage means more current available to accelerate the rotor. The drift is small enough that the closed-loop comparison itself---which runs each pair within seconds of each other---is unaffected, but it is large enough that \emph{between}-session reuse of parameters would still be suspect, confirming once more \sref{sec:xsession-val}'s recalibrate-in-situ requirement.
+
+\section{Limitations}
+\label{sec:cl-limits}
+
+Three caveats bound this closed-loop result.
+
+\begin{enumerate}
+  \item \textbf{One session.} All 64 paired trials are from a single 2026-05-27 bench. Cross-session reproducibility of the \emph{closed-loop} result (separate from the open-loop drift) is not measured.
+  \item \textbf{No external disturbance.} The reference profiles are deterministic; no load disturbance, no brake. The cascade advantage on P1/P3 is therefore a \emph{tracking} advantage; load-disturbance rejection is not tested. Given that the FF is purely a function of $\text{ref}$, a load-disturbance test would isolate the PI portion of each controller and the cascade's FF would not contribute, so this is a meaningful gap.
+  \item \textbf{PI only, no D term.} Both controllers are PI; RPM is quantised at 2.5\,rpm by the encoder/finite-difference chain (\sref{sec:encoder}), making a derivative term noisy. A D term with a low-pass filter is a natural refinement but was excluded from this study to keep BASE-vs.-CASC comparison purely about model structure, not controller order.
+\end{enumerate}
+
+A fourth, milder, caveat: the FF table has five RPM points per direction. Denser sampling near the deadzone edge (e.g.\ RPM~$\in \{30, 50, 60, 70, 80\}$ on top of the present table) would refine the FF curvature in the very region where P2 lost---but per \sref{sec:cl-interp} the issue is structural rather than resolution-limited, so this is unlikely to flip the P2 sign on its own.
+
+\section{Future work}
 \label{sec:cl-future}
 
 Beyond the closed-loop study, the open-loop identification leaves several threads, in rough priority order:
 \begin{itemize}
-  \item \textbf{Friction-explicit dynamic block (``Model~D'').} A Coulomb/Stribeck extension~\citep{armstrong1994} is motivated by the structured residuals at PWM~=~160 and in coast-to-rest decel (\sref{sec:accel}--\ref{sec:decel}); it would replace the effective-FOPDT treatment of those regimes.
+  \item \textbf{Smoothed-FF cascade variant.} Replace the breakaway-saturated FF with a smooth taper through the deadzone, then re-run P2. If P2 flips to a cascade win, the \sref{sec:cl-interp} mechanism is confirmed and a clean cascade-wins-everywhere result follows.
+  \item \textbf{Disturbance-rejection trials.} Add a small load step (e.g.\ via a brake or a mechanical detent) during a steady-state hold; compare BASE and CASC settle-back. The cascade's FF should \emph{not} help here---the comparison becomes a pure PI tuning fairness check.
+  \item \textbf{Friction-explicit dynamic block (``Model~D'').} A Coulomb/Stribeck extension~\citep{armstrong1994} is motivated by the structured residuals at PWM~=~160 and in coast-to-rest decel (\sref{sec:accel}--\ref{sec:decel}); it would also smooth the static block through the deadzone, possibly addressing the P2 result by a different route.
   \item \textbf{Higher-order dynamics near full drive.} The PWM~=~240 rise departs from first order (\sref{sec:accel}); a second-order or back-EMF-aware model would reduce the largest accel residuals.
-  \item \textbf{Grid extension.} Step-ups from below breakaway (breakaway dynamics), dynamic steps to PWM~=~255 (only a static spot-check exists), and decel from start PWMs other than 240 would close the remaining gaps in the operating envelope.
-  \item \textbf{Drift-mechanism study.} The unexplained ${\approx}20\,\%$ reverse high-PWM $\tau$ deflation (\sref{sec:xsession-val}) would require controlled idle-versus-immediate session pairs with thermistor instrumentation to falsify any specific cause (lubricant migration, brush-pattern reset, bearing seating).
-  \item \textbf{Instrumentation.} Routine ambient-temperature and driver-temperature logging should be standard for all future sessions, given the driver-side thermal sensitivity established in \cref{chap:static}.
+  \item \textbf{Cross-session closed-loop reproducibility.} Repeat the bench day on a second session and quantify session-to-session variance of the per-profile differences.
+  \item \textbf{Instrumentation.} Routine ambient-temperature and L298N-temperature logging, plus a session-end calibration to bound drift better than two endpoints can.
 \end{itemize}
 
 \section{Summary}
 \label{sec:cl-summary}
 
-Closing the loop is the one major deliverable the thesis defers. The path is concrete: build a multi-transition simulator (extracted into \texttt{models/}), a PID firmware variant with deadzone feedforward, and a global-LTI baseline; run a self-contained session that calibrates in situ, warms up, and then compares cascade-aware against baseline control on matched reference profiles. The open-loop work predicts a ${\approx}3$--$5$\,rpm steady tracking floor and a cascade advantage concentrated at the deadzone, the $\tau$ extremes, and reversals---with the test designed so that a \emph{null} result (no advantage) would be an equally valid finding. The remaining open-loop refinements (Model~D, higher-order dynamics, grid extension, drift mechanism, instrumentation) are independent of, and not blocking for, this closed-loop study.
+The cascade model is \emph{not} a uniformly better closed-loop controller than a single-LTI baseline on this rig: it wins by 1--5\,rpm on stepwise profiles (staircase, reversal, small-signal) and loses by ${\approx}1$\,rpm on a slow bidirectional ramp through the deadzone. The pre-registered ``wins universally'' hypothesis is therefore falsified, in a specific and informative way. The mechanism---the inverse-static feedforward's discontinuity at the breakaway edge of the deadzone---is identifiable and addressable, and points at a concrete refinement (smoothed-FF cascade variant) that would be the natural next bench-day target. As it stands, the cascade structure earned its complexity for stepwise reference tracking on this hardware; for ramp-through-deadzone tracking, the simpler controller is the better default until the FF is fixed.
 
-\chaptersources{status-doc \S6 (Phase~3 scope, required artifacts, future work) \textperiodcentered{} \sref{sec:xsession-val} (cross-session drift $\to$ in-session calibration requirement) \textperiodcentered{} \texttt{notebooks/04\_validation.ipynb}, \texttt{05\_gap\_fill.ipynb} (single-transition simulator limitation) \textperiodcentered{} \texttt{thesis\_notes/log.md} 2026-05-22 (Phase~3 implications, in-session calibration).}
+\chaptersources{\texttt{data/processed/closed\_loop\_metrics\_per\_trial.csv} (per-trial metrics, $n=64$) \textperiodcentered{} \texttt{data/processed/closed\_loop\_summary.json} (pre-registered tests, headline numbers) \textperiodcentered{} \texttt{data/processed/closed\_loop\_drift\_check.csv} (start-vs.-end drift) \textperiodcentered{} \texttt{models/calibration\_2026-05-27.json} (in-session refit of Models A and C) \textperiodcentered{} \texttt{models/closed\_loop\_gains\_2026-05-27.json} (frozen PI gains and FF table) \textperiodcentered{} \texttt{data/processed/phase3\_preregistration.json} (committed pre-registration, SHA-256 in \texttt{thesis\_notes/log.md}) \textperiodcentered{} \texttt{notebooks/07a\_closed\_loop\_sim.ipynb} (sim predictions, pre-registration freeze) \textperiodcentered{} \texttt{notebooks/07b\_closed\_loop\_results.ipynb} (per-trial metrics, paired tests, figures) \textperiodcentered{} figures~\ref{fig:cl-paired-diff} (paired differences with CIs), \ref{fig:cl-trajectories} (representative trajectories) \textperiodcentered{} \texttt{src\_closedloop/main.cpp}, \texttt{motor\_id/\{cascade\_sim,controllers,model\_io,metrics,calibration\}.py} (controller \& analysis implementations).}

@@ -17,4 +17,6 @@
 \contentsline {table}{\numberline {5.1}{\ignorespaces Phase~2.2 LOOCV excess by regime (Figure~\ref {fig:loocv_summary}; a 30-panel measured-vs-predicted overlay grid is also rendered for the appendix).}}{38}{table.caption.88}%
 \contentsline {table}{\numberline {5.2}{\ignorespaces Combined LOOCV across both sessions (Figure~\ref {fig:loocv_compare}; the full 20-condition table is in status-doc \S 4.4).}}{40}{table.caption.92}%
 \addvspace {10\p@ }
+\contentsline {table}{\numberline {6.1}{\ignorespaces Pre-registered paired RMSE difference per profile, $\text {BASE} - \text {CASC}$. Positive $=$ cascade wins. ``Sim pred.'' is the simulated $\text {BASE} - \text {CASC}$ from \texttt {notebooks/07a\_closed\_loop\_sim.ipynb}, run before bench day with Model~C as truth plant.}}{49}{table.caption.115}%
+\contentsline {table}{\numberline {6.2}{\ignorespaces Drift over the ${\sim }2$\,h closed-loop session.}}{53}{table.caption.126}%
 \addvspace {10\p@ }

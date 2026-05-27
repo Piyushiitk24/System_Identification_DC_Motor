@@ -19,17 +19,32 @@ workflow. The current analysis state is later:
   `notebooks/06_model_comparison.ipynb`. It covers the clean Phase 2.1 grid
   (30 trials) and a full-envelope extension (68 trials) that adds the
   gap-fill 180/220 accel and 240->100/180/220 decel conditions. Persisted
-  A/B/C parameters live in `models/model_{A,B,C}.json` (previously empty
-  directory, populated 2026-05-25).
+  A/B/C parameters live in `models/model_{A,B,C}.json` (populated 2026-05-25).
+- Phase 3 closed-loop validation is in `notebooks/07a_closed_loop_sim.ipynb`
+  (simulation + pre-registration freeze, 2026-05-26) and
+  `notebooks/07b_closed_loop_results.ipynb` (2026-05-27 bench analysis,
+  pre-registered tests). The reusable Python implementation lives in
+  `motor_id/{cascade_sim,controllers,model_io,metrics,calibration}.py`.
+  Closed-loop firmware is `src_closedloop/main.cpp`, built with
+  `platformio_closedloop.ini` (the open-loop sequencer in `src/main.cpp`
+  is unchanged). Session artifacts in `models/calibration_2026-05-27.json`,
+  `models/closed_loop_gains_2026-05-27.json`,
+  `data/raw/closed_loop_2026-05-27/`, and processed summaries in
+  `data/processed/{closed_loop_metrics_per_trial.csv,closed_loop_summary.json,
+  closed_loop_drift_check.csv}`. Pre-registration committed at
+  `data/processed/phase3_preregistration.json`.
 - The running thesis narrative and conclusions live in `thesis_notes/log.md`.
 - Thesis chapter drafts live in `thesis_notes/draft_ch*.md`; use
-  `thesis_notes/repo_status_2026-05-21.md` as the cross-checked snapshot of
+  `thesis_notes/repo_status_2026-05-27.md` as the cross-checked snapshot of
   reported thesis numbers before editing prose. The standalone model-selection
   draft is `thesis_notes/draft_model_selection.md`, integrated as §4.6 in
-  `thesis/Chapters/Chapter_4/Chapter4.tex`.
-- The thesis LaTeX is built: `thesis/main.pdf` (~79 pages, last rebuild
-  2026-05-25) reflects Chapters 1-7 with the integrated §4.6 model-selection
-  section (Tables 4.3-4.4, Figures 4.6-4.8 = generated `figures/20`-`22`).
+  `thesis/Chapters/Chapter_4/Chapter4.tex`. Chapter 6 is the closed-loop
+  results chapter (rewritten 2026-05-27).
+- The thesis LaTeX is built: `thesis/main.pdf` reflects Chapters 1-7 with
+  the integrated §4.6 model-selection section (Tables 4.3-4.4, Figures
+  4.6-4.8 = generated `figures/20`-`22`) and the rewritten Chapter 6 with
+  Phase 3 closed-loop results (Tables 6.1-6.2, Figures 6.1-6.2 = generated
+  `figures/23`-`24`).
 
 Treat `thesis_notes/log.md`, processed CSVs, and notebooks as the source of
 truth for the latest modeling state.
@@ -82,10 +97,25 @@ Archived firmware is in `firmware_archive/`:
 - `step_response_v2.cpp` is the automated 46-trial Phase 2 gap-fill firmware
   now mirrored in `src/main.cpp`.
 
-`scripts/capture_serial.py` is for GO-based automated firmware
-(`step_response_v1` or `step_response_v2`) and sends `GO` after startup. Do
-not use it against manual-mode firmware. `scripts/split_log.py` works for
-both v1 and v2 trial-block logs; choose the correct output directory.
+Phase 3 closed-loop firmware: `src_closedloop/main.cpp`, built with
+`platformio_closedloop.ini` (separate `.ini` so the default `src/main.cpp`
+build is unaffected). Same encoder/PWM/baud as the open-loop firmware, plus
+the closed-loop control loop, FF table, command set, and STOP active-brake
+sequence. Commands: `?`, `WARMUP`, `CALIB`, `DRIFT`, `BASE`, `CASC`,
+`LOAD P1|P2|P3|P4`, `GAINS_BASE <Kp> <Ki>`, `GAINS_CASC <8 floats>`,
+`FF_FWD <n> <rpm0> <pwm0> ...`, `FF_REV ...`, `GO`, `STOP`. Telemetry inside
+closed-loop trial blocks is extended to
+`t_ms,profile,controller,ref_rpm,meas_rpm,pwm_cmd,dir,enc_count,integrator`;
+CALIB/WARMUP/DRIFT trials reuse the open-loop
+`t_ms,pwm_cmd,dir,enc_count,rpm` schema.
+
+`scripts/capture_serial.py` is for GO-based automated open-loop firmware
+(`step_response_v1` or `step_response_v2`) and sends `GO` after startup.
+For Phase 3, `scripts/bench_session.py` orchestrates the full closed-loop
+bench session (warm-up, CALIB, on-laptop refit, gain freeze, 64 paired
+trials, drift check). `scripts/smoke_closed_loop.py` is the Stage-1 smoke
+driver used after firmware upload. `scripts/split_log.py` works for all
+of these trial-block logs; choose the correct output directory.
 
 ## Commands
 
@@ -130,6 +160,15 @@ connected and the matching automated firmware is flashed:
 ```bash
 python scripts/capture_serial.py <port> data/raw/serial_logs/<session>.log
 python scripts/split_log.py data/raw/serial_logs/<session>.log data/raw/step_responses_gapfill/
+```
+
+Build / upload / run the Phase 3 closed-loop firmware (separate `.ini`):
+
+```bash
+pio run -c platformio_closedloop.ini
+pio run -c platformio_closedloop.ini -t upload
+python scripts/smoke_closed_loop.py <port>                       # Stage-1 smoke
+python scripts/bench_session.py --port <port> --seed 20260527    # full session
 ```
 
 ## Data Contracts
@@ -233,7 +272,10 @@ Latest Phase 2 gap-fill interpretation:
 - Phase 3 should not treat Phase 2.1 parameters as ground truth for a later
   bench session. The Phase 3 protocol needs a fresh in-session calibration
   block before closed-loop trials, then should use that same-session
-  calibration for simulator predictions.
+  calibration for simulator predictions. (Confirmed in the 2026-05-27 bench:
+  session Model A had `K_A=0.737`, `tau=155 ms`, `Td=6.6 ms` vs locked
+  Phase 2.1 `0.785 / 207 / 19.8`; reusing locked numbers would have produced
+  an over-damped baseline.)
 
 A/B/C model-selection result (notebook 06, locked 2026-05-25):
 
@@ -261,6 +303,32 @@ A/B/C model-selection result (notebook 06, locked 2026-05-25):
   cross-session penalty falls on all three models alike; the single-session
   Phase 2.1 result (Table 4.3) remains the clean structural reference, with
   the full-envelope numbers in Table 4.4.
+
+Phase 3 closed-loop result (notebook 07b, bench 2026-05-27, n=8 paired per
+profile, pre-registered in `data/processed/phase3_preregistration.json`,
+SHA-256 `da94c83d...02707669`):
+
+- Per-pair median(RMSE_BASE - RMSE_CASC) with 95 % bootstrap CI:
+  P1 (staircase)     +2.82 rpm [+2.74, +2.93]  (cascade wins)
+  P2 (deadzone ramp) -1.13 rpm [-1.20, -0.97]  (cascade LOSES)
+  P3 (reversal)      +5.15 rpm [+5.04, +5.40]  (cascade wins, largest effect)
+  P4 (small-signal)  +1.00 rpm [+0.86, +1.22]  (cascade wins, but P4 was meant
+                                                 to be a neutral control)
+- Pre-registered primary criterion FAILS (P2 median is negative, breaks the
+  conjunctive median>0 condition). Strong criterion FAILS for the same reason.
+  Fairness gate (cascade RMS PWM <= 1.5x baseline) PASSES (ratios 0.99-1.04).
+- Mechanism: the inverse-static FF saturates at breakaway PWM for |ref| <= 50
+  rpm (where the motor cannot sustain steady motion). On a slow ramp this is
+  a slope discontinuity at the breakaway-RPM edge. Step references benefit
+  (P1, P3, P4); slow ramps suffer (P2).
+- Drift over the ~2 h session (start vs end PWM=200 accel): fwd `K_ss +6.7 %,
+  tau -5.2 %`; rev `K_ss +3.7 %, tau -2.5 %`. Consistent with L298N junction
+  warming; small enough that within-pair pairing is not affected.
+
+The Phase 3 conclusion is *not* "cascade wins" in the unrestricted sense, but
+"cascade wins for stepwise tracking, loses for slow ramps through the
+deadzone; the failure traces to the FF discontinuity at breakaway." The
+direct one-change refinement is a smoothed FF table through the deadzone.
 
 Before changing these conclusions, re-run or inspect the relevant notebook and
 the corresponding processed CSV.
