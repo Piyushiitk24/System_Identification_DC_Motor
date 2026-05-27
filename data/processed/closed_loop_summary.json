@@ -1,0 +1,117 @@
+{
+  "session_date": "2026-05-27",
+  "pre_registration_sha256": "(see data/processed/phase3_preregistration.json)",
+  "session_model_A": {
+    "name": "A_session",
+    "description": "Session-fresh Model A (single global LTI), no static block",
+    "K_A_rpm_per_pwm": 0.7369243481182776,
+    "tau_ms": 154.96212911646296,
+    "Td_ms": 6.616164352282203,
+    "n_trials": 18
+  },
+  "gains_lambda_ms": 200.0,
+  "n_trials_loaded": 64,
+  "per_profile_diff_summary": [
+    {
+      "profile": "P1",
+      "n_pairs": 8,
+      "mean_diff": 2.8329,
+      "median_diff": 2.8243,
+      "sd_diff": 0.1416
+    },
+    {
+      "profile": "P2",
+      "n_pairs": 8,
+      "mean_diff": -1.0944,
+      "median_diff": -1.1272,
+      "sd_diff": 0.1747
+    },
+    {
+      "profile": "P3",
+      "n_pairs": 8,
+      "mean_diff": 5.217,
+      "median_diff": 5.1549,
+      "sd_diff": 0.2769
+    },
+    {
+      "profile": "P4",
+      "n_pairs": 8,
+      "mean_diff": 1.0319,
+      "median_diff": 1.0049,
+      "sd_diff": 0.2918
+    }
+  ],
+  "per_profile_CI": [
+    {
+      "profile": "P1",
+      "n": 8,
+      "median": 2.8243,
+      "mean": 2.8329,
+      "ci_lo": 2.7444,
+      "ci_hi": 2.9293,
+      "ci_excludes_zero": true,
+      "wilcoxon_p_greater": 0.0039
+    },
+    {
+      "profile": "P2",
+      "n": 8,
+      "median": -1.1272,
+      "mean": -1.0944,
+      "ci_lo": -1.2007,
+      "ci_hi": -0.9731,
+      "ci_excludes_zero": false,
+      "wilcoxon_p_greater": 1.0
+    },
+    {
+      "profile": "P3",
+      "n": 8,
+      "median": 5.1549,
+      "mean": 5.217,
+      "ci_lo": 5.0364,
+      "ci_hi": 5.3978,
+      "ci_excludes_zero": true,
+      "wilcoxon_p_greater": 0.0039
+    },
+    {
+      "profile": "P4",
+      "n": 8,
+      "median": 1.0049,
+      "mean": 1.0319,
+      "ci_lo": 0.8584,
+      "ci_hi": 1.2206,
+      "ci_excludes_zero": true,
+      "wilcoxon_p_greater": 0.0039
+    }
+  ],
+  "pooled_pvalue": {
+    "pooled_mean": 21.3315524959344,
+    "n": 24,
+    "p_greater": 0.00028377771377563477
+  },
+  "primary_pass": false,
+  "strong_pass": false,
+  "p4_ci_excludes_zero": true,
+  "control_effort_ratios": {
+    "P1": {
+      "BASE": 172.9776,
+      "CASC": 171.4049,
+      "ratio_CASC_over_BASE": 0.9909
+    },
+    "P2": {
+      "BASE": 168.2353,
+      "CASC": 168.6822,
+      "ratio_CASC_over_BASE": 1.0027
+    },
+    "P3": {
+      "BASE": 165.5843,
+      "CASC": 171.6771,
+      "ratio_CASC_over_BASE": 1.0368
+    },
+    "P4": {
+      "BASE": 209.466,
+      "CASC": 211.406,
+      "ratio_CASC_over_BASE": 1.0093
+    }
+  },
+  "fairness_gate_pass": true
+}
