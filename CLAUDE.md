@@ -121,6 +121,18 @@ There are three firmware behaviours, and they are not interchangeable:
 
 If you need a different protocol, swap from the archived file intentionally and keep `src/main.cpp`, `AGENTS.md`, and this file aligned.
 
+### Shared Python package (`motor_id/`)
+
+The Phase 3 control and simulation logic is factored out of the notebooks into an importable package so the *same code* backs the simulation, the bench orchestrator, and the results analysis:
+
+- `cascade_sim.py` — `ModelC`/`ModelA` plant classes and the open- and closed-loop simulators (`simulate_open_loop*`, `simulate_closed_loop`).
+- `controllers.py` — `PIController` (BASE) and `CascadeController` (CASC: IMC PI + inverse-static FF + region gains). These mirror the C++ in `src_closedloop/main.cpp`.
+- `calibration.py` — in-session FOPDT refit: fit accel/decel CALIB trials, build a session Model A/C, and persist (`build_session_model_{A,C}`, `save_session_models`).
+- `model_io.py` — load `model_{A,C}.json`, compute IMC baseline/cascade gains, build the FF table, and serialise it to `FF_FWD/FF_REV` firmware commands (`build_ff_table`, `ff_table_to_firmware_commands`).
+- `metrics.py` — the pre-registered statistics: RMSE variants (windowed, deadzone, transient), settling/overshoot/ss-error, control-effort RMS, and the paired-bootstrap CI / Wilcoxon / pooled tests used by notebook 07b.
+
+The key consequence: because notebooks `07a`/`07b` and `scripts/bench_session.py` import the *identical* controller and simulator code, a sim-vs-bench divergence (e.g. the P2 sign reversal) cannot be a controller-code mismatch — it is attributable to plant physics the simulator omits. Do not fork this logic into a notebook cell; extend the package and re-import.
+
 ### Data contracts (raw CSVs)
 
 These contracts matter because notebooks fail or silently mis-fit if they are violated:
