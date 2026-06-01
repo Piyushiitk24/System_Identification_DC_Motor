@@ -159,6 +159,14 @@ htmlcov/
 reports/
 
 # ---------------------------------------------------------------------------
+# Node / JavaScript (slides deck build — slides/Build.js uses pptxgenjs)
+# Dependencies are reinstalled with `npm install` in slides/; package.json and
+# package-lock.json stay tracked so the deck build is reproducible.
+# ---------------------------------------------------------------------------
+node_modules/
+npm-debug.log*
+
+# ---------------------------------------------------------------------------
 # Project-specific note
 # ---------------------------------------------------------------------------
 # Do not ignore these project outputs globally:
