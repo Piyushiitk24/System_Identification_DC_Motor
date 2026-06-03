@@ -226,7 +226,7 @@ infoCard(s,M,4.2,5.62,2.0,"Hysteretic deadzone  (forward / reverse)","B45309",[
   "Different thresholds for starting vs stopping → genuine hysteresis"
 ],{fontSize:13.5,fill:AMBER_BG,border:AMBER_LINE});
 addFig(s,6.7,2.35,5.93,3.5,"04_asymmetry_ratio.png",1200,750);
-figCaption(s,6.7,5.92,5.93,"Voltage-ratio (purple) peaks at 2.2× near the deadzone; the RPM-ratio (green) stays far lower — the asymmetry is in the driver, not the motor.");
+figCaption(s,6.7,5.92,5.93,"Fig 3.4 — Voltage-ratio (driver, amber) peaks at 2.2× near the deadzone; the RPM-ratio (motor, teal) stays far lower — the asymmetry is in the driver, not the motor.");
 
 // ===========================================================================
 // SLIDE 6 — EVIDENCE 2 : motor symmetric  (contribution 1)
@@ -260,7 +260,7 @@ s=scaffold("Open-loop evidence · 3 of 3","B45309","A single time constant is wr
 stat(s,M,2.12,3.79,1.0,"≈ 2×",AMBER,"decel τ vs accel τ");
 stat(s,M+3.97,2.12,3.79,1.0,"81 ms",AMBER,"accel τ floor (→200 near breakaway)");
 stat(s,M+2*3.97,2.12,3.79,1.0,"321–366",AMBER,"decel τ (ms), deadzone coast");
-addFig(s,M,3.2,CW,3.35,"22_model_ladder_fullgrid.png",2083,769);
+addFig(s,M,3.2,CW,3.35,"22_model_ladder_fullgrid.png",2083,760);
 figCaption(s,M,6.6,CW,"Fig 4.8 — Model B's single τ fails worst at the bathtub bottom (PWM 180–220) and at deadzone-edge decel; Model C stays flat-low. Direction asymmetry reverses sign accel ↔ decel.");
 
 // ===========================================================================
@@ -272,7 +272,7 @@ stat(s,M,2.12,3.79,1.0,"+1.06",TEAL,"accel LOOCV excess (rpm)");
 stat(s,M+3.97,2.12,3.79,1.0,"+0.10",SLATE,"decel LOOCV excess (rpm)");
 stat(s,M+2*3.97,2.12,3.79,1.0,"−0.05",TEAL,"warm accel excess — prediction met");
 addFig(s,M,3.2,CW,3.35,"19_loocv_phase22_vs_gapfill.png",2240,770);
-figCaption(s,M,6.6,CW,"LOOCV RMSE vs in-sample floor. Left (cool session): accel excess +1.06. Right (warm session): accel excess collapses to −0.05 — the cold-start hypothesis, confirmed. No held-out set ever existed → LOOCV is the honest estimator.");
+figCaption(s,M,6.6,CW,"Fig 5.2 — LOOCV RMSE vs in-sample floor. Left (cool session): accel excess +1.06. Right (warm session): accel excess collapses to −0.05 — the cold-start hypothesis, confirmed. No held-out set ever existed → LOOCV is the honest estimator.");
 
 // ===========================================================================
 // SLIDE 9 — VALIDATION : structured drift
@@ -362,7 +362,7 @@ s.addText([
 ],{x:M+0.22,y:4.85,w:5.7-0.44,h:1.0,fontFace:BODYF,valign:"middle",margin:0});
 s.addText("A pre-registered hypothesis, falsified in a mechanistically-identified way that points to a fix, is a result — not a setback.",
   {x:M,y:6.0,w:5.7,h:0.85,fontFace:BODYF,fontSize:12.5,italic:true,bold:true,color:INK,align:"left",valign:"top",margin:0});
-addFig(s,6.65,2.2,6.0,4.0,"25_p2_zero_crossing_zoom.png",1308,1069);
+addFig(s,6.65,2.2,6.0,4.0,"25_p2_zero_crossing_zoom.png",1350,1080);
 figCaption(s,6.65,6.32,6.0,"Fig 6.3 — at the zero crossing the CASC feedforward steps the PWM and drives a ~55 rpm reverse overshoot (blue); BASE (red) stays smooth.");
 
 // ===========================================================================
@@ -469,7 +469,7 @@ s.addText("Tip: every “already-in-the-work” question = something shown but n
 // ===========================================================================
 s=scaffold("Backup","475569","The model ladder, on real step responses.",
   "If they ask why C earns its complexity over A and B: Model A reaches the wrong level and rises with the wrong shape; Model C tracks both level and transient. The scoreboard on the next slide shows C wins every direction-by-region group.");
-addFig(s,M,2.3,7.5,4.25,"20_model_ladder_overlay.png",1934,1181);
+addFig(s,M,2.3,7.5,4.25,"20_model_ladder_overlay.png",1934,1183);
 figCaption(s,M,6.62,7.5,"Fig 4.6 — measured vs Model A / B / C on four representative transitions; per-panel RMSE annotated.");
 infoCard(s,8.45,2.3,4.18,4.25,"Why C earns its complexity","0F2440",[
   "Model A reaches the wrong level and rises with the wrong shape.",
@@ -483,7 +483,7 @@ infoCard(s,8.45,2.3,4.18,4.25,"Why C earns its complexity","0F2440",[
 // ===========================================================================
 s=scaffold("Backup","475569","A/B/C scoreboard — Model C wins every direction × region group.",
   "If they want the headline scoreboard: Model C wins every one of the four direction-by-region groups, on both prediction error and goodness-of-fit. The big jump is adding the static block, A to B; region-dependent tau, B to C, is the consistent finisher.");
-addFig(s,M,2.4,CW,3.55,"21_model_ladder_scoreboard.png",2084,740);
+addFig(s,M,2.4,CW,3.55,"21_model_ladder_scoreboard.png",2084,730);
 figCaption(s,M,6.05,CW,"Fig 4.7 — left: post-step RMSE (lower = better); right: FIT% (higher = better, Model A clipped at −50). Model C is best in all four groups on both metrics.");
 s.addText("The static block (A → B) is the big jump; region-dependent τ (B → C) is the consistent finisher.",
   {x:M,y:6.5,w:CW,h:0.4,fontFace:BODYF,fontSize:12.5,italic:true,color:SLATE,align:"center",margin:0});
