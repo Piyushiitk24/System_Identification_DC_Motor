@@ -60,9 +60,14 @@ numbers without inspecting the corresponding notebook and processed CSV.
 Firmware (PlatformIO, Arduino Uno R4 Minima):
 
 ```bash
-pio run                            # build
+pio run                            # build default open-loop firmware (src/main.cpp)
 pio run -t upload                  # upload (only when hardware is connected)
 pio device monitor -b 230400       # serial monitor
+
+# Phase 3 closed-loop firmware lives in src_closedloop/ and needs the -c flag
+# so it does not collide with the default src_dir:
+pio run -c platformio_closedloop.ini            # build closed-loop firmware
+pio run -c platformio_closedloop.ini -t upload  # upload closed-loop firmware
 ```
 
 Python analysis environment:
