@@ -605,3 +605,42 @@ controller).
 Thesis: chapter drafts `draft_ch6_closedloop.md` rewritten from "plan" to results; `draft_ch1` and
 `draft_ch7` updated to drop deferred-framing and to include Phase 3 findings. LaTeX
 `thesis/Chapters/Chapter_{1,6,7}` mirrored. `main.pdf` rebuild pending.
+
+## 2026-06-10 - Thesis LaTeX standalone-final polish (no bench)
+
+Editing pass on `thesis/` LaTeX only (no data, no model, no figure changes). Goal: turn the
+draft-rooted report into a self-contained final document.
+
+- **Em dashes removed everywhere in rendered prose.** All `---` replaced by comma / colon /
+  parentheses across `main.tex` (abstract) and `Chapters/Chapter_1..7`. En-dash `--` numeric
+  ranges (e.g. `1--5` rpm) left intact. Verified: `pdftotext main.pdf | grep -c '—'` = 0.
+  Remaining `---` in the tree are only LaTeX comment dividers (`% ---`) and TikZ-figure comments,
+  which do not render.
+- **Repo/code identifiers stripped from prose.** Every `\texttt{}`/`\mathtt{}` carrying a filename,
+  CSV/notebook/`.cpp`/`.py` path, serial-command name (`GO`, `GAINS_BASE`, `FF_FWD`, ...), telemetry
+  column header (`t_ms,pwm_cmd,dir,enc_count,rpm`), or API/function/struct name
+  (`analogWriteFrequency()`, `PwmOut`, `pulse_perc()`, `ENCODER_SIGN`, `compute_imc_gains`,
+  `ff_lookup`, `static_rpm`) was reworded into plain description. The no-op `\chaptersources{...}`
+  provenance footers were deleted from all seven chapters.
+- **Informal phrasing reworded:** "piggyback (trials/re-runs)"→"cross-session re-run(s)"
+  (figure *labels* `fig:piggyback` and the figure *filenames* kept — invisible in the PDF);
+  "hands-off"→"without operator intervention"; "straw-man baseline"→"deliberately simple baseline".
+  Visible "status-doc §x" pointers removed from two Ch5 captions.
+- **Build:** `cd thesis && latexmk -pdf main.tex` → exit 0, **0 undefined refs/cites, 90 pages**
+  (was 91; one page of reflow). No locked numbers, tables, or figures touched.
+- **Not done:** the `thesis_notes/draft_ch*.md` markdown working drafts were *not* re-polished, so
+  the `.tex` is now ahead of them on em-dash/standalone prose style. Two invariants documented in
+  `CLAUDE.md` and `AGENTS.md`: no em dashes, no code identifiers in thesis prose.
+- **Figure-baked draft words fixed (same day).** Several thesis figures had draft jargon rendered
+  *into the image* (titles/legends), not just the caption. Fixed at the generator level in
+  `notebooks/05_gap_fill.ipynb` (display strings only, no variable names or logic touched):
+  fig 14 legend "piggy run N" → "re-run N", subplot titles "τ_p21/τ_pig" → "τ_P2.1/τ_rerun";
+  fig 15 titles "Piggyback τ/|K_ss| vs trial-order" → "Cross-session re-run … vs trial order";
+  fig 16 legend "… piggyback (n=2)" → "… re-run (n=2)" and title "+ piggyback" → "+ re-runs";
+  fig 18 "P21" → "Phase 2.1" in legends and overlay titles. Notebook re-executed in place; figs
+  14/15/16/18 regenerated and mirrored to `thesis/Pictures/`. The re-run's float-noise-only CSV
+  rewrites (`phase2gapfill_*.csv`, differing at ~1e-9, invisible at thesis precision) were
+  `git checkout`-restored to keep locked numbers byte-stable, and the unintended fig-17 re-render
+  was restored too. Net change: 4 figure PNGs (×2 = `figures/` + `thesis/Pictures/`) and the
+  notebook. The figure *filenames* (e.g. `14_…_piggyback_overlay.png`) were kept — they are
+  invisible in the PDF; only the in-image text was the issue. Thesis rebuilt: 90 pp, 0 undefined.

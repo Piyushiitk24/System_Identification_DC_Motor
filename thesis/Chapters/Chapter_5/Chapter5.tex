@@ -7,12 +7,12 @@
 \section{Objective}
 \label{sec:val-obj}
 
-\cref{chap:dynamic} fitted Model~C condition by condition. This chapter asks whether those parameters \textbf{predict} rather than merely describe: given the calibrated FOPDT for an operating point, how accurately does the model reproduce a trial it was not fitted to? Three questions are separated---how well the model generalises between repeats of the same condition (within-grid), whether that generalisation depends on the acceleration/deceleration regime, and how far the parameters transfer to a \emph{different bench session}. The answers quantify the model's predictive error and, importantly, expose a cold-start effect that reframes one of the Phase~2.1 conclusions.
+\cref{chap:dynamic} fitted Model~C condition by condition. This chapter asks whether those parameters \textbf{predict} rather than merely describe: given the calibrated FOPDT for an operating point, how accurately does the model reproduce a trial it was not fitted to? Three questions are separated: how well the model generalises between repeats of the same condition (within-grid), whether that generalisation depends on the acceleration/deceleration regime, and how far the parameters transfer to a \emph{different bench session}. The answers quantify the model's predictive error and, importantly, expose a cold-start effect that reframes one of the Phase~2.1 conclusions.
 
 \section{Method}
 \label{sec:val-method}
 
-The validation plan originally called for a separate held-out dataset. An inventory probe established that \textbf{this set never existed}---it was an aspiration in an early handover, not a real artifact---so validation pivoted to \textbf{leave-one-out cross-validation (LOOCV)}~\citep{hastie2009}, which needs no separate hold-out and uses the existing trials honestly.
+The validation plan originally called for a separate held-out dataset. An inventory probe established that \textbf{this set never existed} (it was an aspiration in an early handover, not a real artifact), so validation pivoted to \textbf{leave-one-out cross-validation (LOOCV)}~\citep{hastie2009}, which needs no separate hold-out and uses the existing trials honestly.
 
 For each trial, the model is rebuilt from the \emph{other} runs at the same condition and used to predict the held-out trial: the FOPDT parameters are taken as the mean of the remaining runs (two others in Phase~2.1, four in the gap-fill accel set), injected into the single-transition Model~C simulator, and scored against the measured trace. Scoring is window-matched to the original fits so the comparison is like-for-like: the rise window for acceleration, the post-2000\,ms fit window for deceleration. The headline metric is the \textbf{excess},
 \begin{equation}
@@ -48,21 +48,21 @@ Applying LOOCV across the thirty Phase~2.1 trials gives the by-regime summary of
   \label{fig:loocv_summary}
 \end{figure}
 
-Two results stand out. The model generalises well in absolute terms---even the worst accel condition predicts held-out trials to within ${\approx}2$\,rpm of its own fit floor, against an RPM signal whose quantisation alone is 2.5\,rpm (\sref{sec:encoder}). And \textbf{deceleration is roughly ten times more reproducible than acceleration} ($+0.10$ vs $+1.06$\,rpm excess). The worst single condition is acceleration at PWM~=~160 forward ($+1.97$\,rpm), the friction-corrupted operating point just above breakaway; the best is reverse PWM~=~200, which actually predicts marginally \emph{better} than its own noisy fit---a sign of LOOCV robustness rather than a model gain.
+Two results stand out. The model generalises well in absolute terms: even the worst accel condition predicts held-out trials to within ${\approx}2$\,rpm of its own fit floor, against an RPM signal whose quantisation alone is 2.5\,rpm (\sref{sec:encoder}). And \textbf{deceleration is roughly ten times more reproducible than acceleration} ($+0.10$ vs $+1.06$\,rpm excess). The worst single condition is acceleration at PWM~=~160 forward ($+1.97$\,rpm), the friction-corrupted operating point just above breakaway; the best is reverse PWM~=~200, which actually predicts marginally \emph{better} than its own noisy fit, a sign of LOOCV robustness rather than a model gain.
 
 \section{The acceleration/deceleration reproducibility asymmetry}
 \label{sec:coldstart}
 
-The $10\times$ gap in \tref{tab:loocv_regime} is not predicted by the FOPDT structure and demands a physical explanation. The hypothesis is \textbf{cold-start stochasticity}. An acceleration trial starts the motor from rest, catching it cold: static-friction breakaway is stochastic (\sref{sec:deadzone}) and the rotor pole alignment at the instant of release is uncontrolled, so the early rise varies run to run in ways a mean parameter set cannot track. A deceleration trial, by contrast, begins only after the motor has held PWM~=~240 for three seconds---by then it is thermally settled, its friction is stable, and pole position has been randomised over many revolutions. Decel therefore always sees a ``warm, settled'' machine and transfers cleanly between runs; accel from rest does not. This was invisible in the Phase~2.1 per-condition fits, which average over runs, and is exposed only by the leave-one-out procedure.
+The $10\times$ gap in \tref{tab:loocv_regime} is not predicted by the FOPDT structure and demands a physical explanation. The hypothesis is \textbf{cold-start stochasticity}. An acceleration trial starts the motor from rest, catching it cold: static-friction breakaway is stochastic (\sref{sec:deadzone}) and the rotor pole alignment at the instant of release is uncontrolled, so the early rise varies run to run in ways a mean parameter set cannot track. A deceleration trial, by contrast, begins only after the motor has held PWM~=~240 for three seconds: by then it is thermally settled, its friction is stable, and pole position has been randomised over many revolutions. Decel therefore always sees a ``warm, settled'' machine and transfers cleanly between runs; accel from rest does not. This was invisible in the Phase~2.1 per-condition fits, which average over runs, and is exposed only by the leave-one-out procedure.
 
 \section{Warm-motor confirmation (gap-fill)}
 \label{sec:warm}
 
-The cold-start hypothesis makes a falsifiable prediction: with a \textbf{warm} motor, acceleration reproducibility should collapse to the deceleration level. The gap-fill session tests exactly this---its new accel conditions were run five times each on an already-warm machine. The within-condition LOOCV is summarised in \tref{tab:loocv_combined}.
+The cold-start hypothesis makes a falsifiable prediction: with a \textbf{warm} motor, acceleration reproducibility should collapse to the deceleration level. The gap-fill session tests exactly this: its new accel conditions were run five times each on an already-warm machine. The within-condition LOOCV is summarised in \tref{tab:loocv_combined}.
 
 \begin{table}[t]
   \centering
-  \caption{Combined LOOCV across both sessions (\fref{fig:loocv_compare}; the full 20-condition table is in status-doc \S4.4).}
+  \caption{Combined LOOCV across both sessions (\fref{fig:loocv_compare}).}
   \label{tab:loocv_combined}
   \small
   \begin{tabular}{@{}p{5.2cm}rcp{3.4cm}@{}}
@@ -71,7 +71,7 @@ The cold-start hypothesis makes a falsifiable prediction: with a \textbf{warm} m
     \midrule
     Phase 2.2 accel (cold, from rest) & $+1.06$ & 6 & worst fwd 160 $+1.97$ \\
     Gap-fill accel (warm, $n{=}5$) & \boldmath$-0.05$ & 4 & range $-0.37 \ldots +0.28$ \\
-    Phase 2.2 decel & $+0.10$ & 4 & --- \\
+    Phase 2.2 decel & $+0.10$ & 4 & (none) \\
     Gap-fill decel & $+0.45$ & 6 & worst rev $240\to100$, $+1.06$ \\
     \bottomrule
   \end{tabular}
@@ -84,29 +84,29 @@ The cold-start hypothesis makes a falsifiable prediction: with a \textbf{warm} m
   \label{fig:loocv_compare}
 \end{figure}
 
-The prediction holds: warm-motor acceleration excess collapses from $+1.06$ to \textbf{$-0.05$\,rpm}, statistically indistinguishable from the deceleration floor. The Phase~2.2 accel penalty was therefore \textbf{cold-start stochasticity, not a steady-state property of acceleration}---a refinement, not a contradiction, of the Phase~2.1 conclusion. Deceleration excess stays low in both sessions ($+0.10$, $+0.45$); the slightly higher gap-fill figure is driven almost entirely by one condition, reverse $240\to100$ ($+1.06$\,rpm), where short PWM-on pulses during freewheel through the deadzone interact stochastically with the brush contact pattern---the noisiest condition in the entire study (\sref{sec:decel}; status-doc \S5).
+The prediction holds: warm-motor acceleration excess collapses from $+1.06$ to \textbf{$-0.05$\,rpm}, statistically indistinguishable from the deceleration floor. The Phase~2.2 accel penalty was therefore \textbf{cold-start stochasticity, not a steady-state property of acceleration}, a refinement, not a contradiction, of the Phase~2.1 conclusion. Deceleration excess stays low in both sessions ($+0.10$, $+0.45$); the slightly higher gap-fill figure is driven almost entirely by one condition, reverse $240\to100$ ($+1.06$\,rpm), where short PWM-on pulses during freewheel through the deadzone interact stochastically with the brush contact pattern, the noisiest condition in the entire study (\sref{sec:decel}).
 
 \section{Cross-session generalization}
 \label{sec:xsession-val}
 
-The eight piggyback trials---Phase~2.1 conditions re-run during the gap-fill session, two weeks later---test the hardest case: do the calibrated parameters transfer across sessions? They do not transfer cleanly, and the failure is \textbf{structured}, not random (\fref{fig:piggyback}, \fref{fig:warmup}):
+The eight cross-session re-run trials (Phase~2.1 conditions re-run during the gap-fill session, two weeks later) test the hardest case: do the calibrated parameters transfer across sessions? They do not transfer cleanly, and the failure is \textbf{structured}, not random (\fref{fig:piggyback}, \fref{fig:warmup}):
 \begin{itemize}
-  \item \textbf{Cold-start transient.} The first forward accel trials of the session show $\tau$ inflated 30--40\,\% (e.g.\ fwd 200 run 1: $\tau = 131$\,ms vs the Phase~2.1 mean of 95\,ms), recovering within the first ${\approx}30$\,s as the motor warms---the same thermal effect as \sref{sec:coldstart}, now visible at session scale.
+  \item \textbf{Cold-start transient.} The first forward accel trials of the session show $\tau$ inflated 30--40\,\% (e.g.\ fwd 200 run 1: $\tau = 131$\,ms vs the Phase~2.1 mean of 95\,ms), recovering within the first ${\approx}30$\,s as the motor warms, the same thermal effect as \sref{sec:coldstart}, now visible at session scale.
   \item \textbf{Persistent low-speed decel slowdown.} Decel through the deadzone ($240\to100$, $240\to180$) runs ${\approx}2\times$ slower than Phase~2.1 interpolation would predict, a persistent shift attributed to lubricant settling over the idle period.
-  \item \textbf{Persistent reverse high-PWM speed-up.} Reverse $\tau$ at PWM~=~240 sits ${\approx}20\,\%$ below its Phase~2.1 value across all gap-fill reverse high-PWM trials---stable, not a warm-up transient, and mechanistically unexplained.
+  \item \textbf{Persistent reverse high-PWM speed-up.} Reverse $\tau$ at PWM~=~240 sits ${\approx}20\,\%$ below its Phase~2.1 value across all gap-fill reverse high-PWM trials, stable, not a warm-up transient, and mechanistically unexplained.
 \end{itemize}
 
 \begin{figure}[t]
   \centering
   \includegraphics[width=0.92\textwidth]{14_phase2gapfill_piggyback_overlay}
-  \caption{Piggyback re-runs (two gap-fill runs) overlaid on the Phase~2.1 reference at the same conditions: the traces no longer coincide, exposing structured session-to-session drift.}
+  \caption{Cross-session re-runs (two gap-fill runs) overlaid on the Phase~2.1 reference at the same conditions: the traces no longer coincide, exposing structured session-to-session drift.}
   \label{fig:piggyback}
 \end{figure}
 
 \begin{figure}[t]
   \centering
   \includegraphics[width=0.97\textwidth]{15_phase2gapfill_warmup_trend}
-  \caption{Piggyback $\tau$ and $|\Kss|$ versus trial-order position in the gap-fill session: forward accel $\tau$ is inflated for the first ${\approx}30$\,s, then recovers as the motor warms.}
+  \caption{Cross-session re-run $\tau$ and $|\Kss|$ versus trial-order position in the gap-fill session: forward accel $\tau$ is inflated for the first ${\approx}30$\,s, then recovers as the motor warms.}
   \label{fig:warmup}
 \end{figure}
 
@@ -115,11 +115,9 @@ The operative conclusion is that \textbf{Phase~2.1 parameters must not be treate
 \section{Limitations of the validation}
 \label{sec:val-limits}
 
-Three boundaries should be stated plainly. (i) LOOCV tests \textbf{interpolation within the calibration grid} only---PWM~$\in\{160\ldots240\}$, decel targets~$\in\{0, 100, 160, 180, 220\}$; it does not test extrapolation beyond it. (ii) There is \textbf{no truly held-out dataset}; the sealed set never existed, and LOOCV reuses calibration trials by construction. (iii) Cross-session generalisation is characterised (\sref{sec:xsession-val}) but not \emph{validated}---the drift is measured, not corrected, so the model is not claimed to predict a future cold session without recalibration. None of these undermine the within-session result; they bound its scope.
+Three boundaries should be stated plainly. (i) LOOCV tests \textbf{interpolation within the calibration grid} only: PWM~$\in\{160\ldots240\}$, decel targets~$\in\{0, 100, 160, 180, 220\}$; it does not test extrapolation beyond it. (ii) There is \textbf{no truly held-out dataset}; the sealed set never existed, and LOOCV reuses calibration trials by construction. (iii) Cross-session generalisation is characterised (\sref{sec:xsession-val}) but not \emph{validated}: the drift is measured, not corrected, so the model is not claimed to predict a future cold session without recalibration. None of these undermine the within-session result; they bound its scope.
 
 \section{Summary}
 \label{sec:val-summary}
 
-Model~C predicts held-out trials within its calibration grid to ${\approx}0.1$--$1$\,rpm of its own fit floor, on an RPM signal whose quantisation is 2.5\,rpm---a strong within-session result. The leave-one-out procedure surfaced a cold-start effect: acceleration from rest is ${\approx}10\times$ less reproducible than deceleration, a gap that collapses to zero once the motor is warm, confirming the effect is start-state stochasticity rather than a property of acceleration itself. Cross-session transfer is structured but imperfect---a warm-up transient, a persistent low-speed decel slowdown, and a persistent reverse high-PWM speed-up---large enough that later-session work must recalibrate in situ. If closed-loop control were undertaken on this rig, these residuals imply a steady-operation tracking floor of ${\approx}3$--$5$\,rpm. With the static block (\cref{chap:static}), the dynamic block (\cref{chap:dynamic}), and this within-grid validation in place, the open-loop identification motivates the closed-loop comparison of \cref{chap:closedloop}, where the cascade structure is tested directly against a single-LTI baseline tuned from the same in-session data.
-
-\chaptersources{\texttt{data/processed/phase21\_loocv\_summary.csv}, \texttt{phase2gapfill\_loocv\_summary\_combined.csv}, and the per-trial LOOCV CSVs \textperiodcentered{} \texttt{notebooks/04\_validation.ipynb}, \texttt{05\_gap\_fill.ipynb} (LOOCV, simulator, figures 12--15, 19) \textperiodcentered{} status-doc \S4.4, \S5 \textperiodcentered{} \texttt{thesis\_notes/log.md} 2026-05-07 / 2026-05-22 (LOOCV results, cold-start hypothesis, session drift).}
+Model~C predicts held-out trials within its calibration grid to ${\approx}0.1$--$1$\,rpm of its own fit floor, on an RPM signal whose quantisation is 2.5\,rpm, a strong within-session result. The leave-one-out procedure surfaced a cold-start effect: acceleration from rest is ${\approx}10\times$ less reproducible than deceleration, a gap that collapses to zero once the motor is warm, confirming the effect is start-state stochasticity rather than a property of acceleration itself. Cross-session transfer is structured but imperfect (a warm-up transient, a persistent low-speed decel slowdown, and a persistent reverse high-PWM speed-up), large enough that later-session work must recalibrate in situ. If closed-loop control were undertaken on this rig, these residuals imply a steady-operation tracking floor of ${\approx}3$--$5$\,rpm. With the static block (\cref{chap:static}), the dynamic block (\cref{chap:dynamic}), and this within-grid validation in place, the open-loop identification motivates the closed-loop comparison of \cref{chap:closedloop}, where the cascade structure is tested directly against a single-LTI baseline tuned from the same in-session data.

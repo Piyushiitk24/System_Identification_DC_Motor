@@ -40,8 +40,8 @@ workflow. The current analysis state is later:
   draft is `thesis_notes/draft_model_selection.md`, integrated as §4.6 in
   `thesis/Chapters/Chapter_4/Chapter4.tex`. Chapter 6 is the closed-loop
   results chapter (rewritten 2026-05-27).
-- The thesis LaTeX is built: `thesis/main.pdf` is currently 91 pages
-  (last rebuild 2026-05-27, 0 undefined refs). It reflects Chapters 1-7
+- The thesis LaTeX is built: `thesis/main.pdf` is currently 90 pages
+  (last rebuild 2026-06-10, 0 undefined refs). It reflects Chapters 1-7
   with the integrated §4.6 model-selection section (Tables 4.3-4.4,
   Figures 4.6-4.8 = generated `figures/20`-`22`) and the rewritten
   Chapter 6 with Phase 3 closed-loop results (Tables 6.1-6.2, Figures
@@ -68,6 +68,17 @@ workflow. The current analysis state is later:
   has a real generator `scripts/make_fig63_p2_zoom.py` (was a bare PNG). Re-running
   notebooks 01/06 is deterministic — locked `models/*.json` and
   `data/processed/*ladder*` CSVs are unchanged. Thesis rebuilt 2026-06-02 (91 pp).
+- **Standalone-final-report polish (2026-06-10):** the thesis `.tex` prose was
+  made self-contained. Two invariants now hold and must be preserved: (1) **no em
+  dashes** (`---`) in rendered prose — replace with comma/colon/parentheses
+  (en-dash `--` numeric ranges are fine); (2) **no repo/code identifiers** in prose
+  — no filenames, CSV/notebook/`.cpp`/`.py` paths, serial-command names, or
+  telemetry column names in `\texttt{}`/`\verb`/`\mathtt`; describe them in words.
+  The no-op `\chaptersources{...}` provenance footers were removed, and informal
+  draft phrasing ("piggyback", "hands-off", "straw-man") was reworded. The
+  `thesis_notes/draft_ch*.md` working drafts were **not** re-polished, so the
+  `.tex` is ahead of them on prose style; the built PDF is verified 0 em-dash
+  glyphs, 0 undefined refs, 90 pp.
 
 Treat `thesis_notes/log.md`, processed CSVs, and notebooks as the source of
 truth for the latest modeling state.
@@ -415,8 +426,8 @@ the data and status snapshot:
   `thesis/Pictures/` and mirror the generated figures where needed. Build:
   `cd thesis && latexmk -pdf main.tex` (local toolchain is BasicTeX 2025basic;
   `main.tex` has a comment listing packages trimmed for that build versus the
-  full Overleaf/TeX-Live preamble). `thesis/main.pdf` is current at 91 pages
-  (last rebuild 2026-06-02, 0 undefined refs) and includes §4.6 *Model selection:
+  full Overleaf/TeX-Live preamble). `thesis/main.pdf` is current at 90 pages
+  (last rebuild 2026-06-10, 0 undefined refs) and includes §4.6 *Model selection:
   the A/B/C ladder, quantified*, with Table 4.3 (Phase 2.1 scoreboard), Table 4.4
   (full-envelope, by-session), Figures 4.6-4.8 (= `figures/20`-`22`), and the
   Phase 3 Chapter 6 results (Figures 6.1-6.3 = `figures/23`-`25`). Figure numbers
